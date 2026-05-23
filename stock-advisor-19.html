@@ -1,0 +1,2775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>📈 Market Advisor</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg: #0a0a0f;
+  --surface: #12121a;
+  --surface2: #1a1a26;
+  --border: #2a2a3a;
+  --accent: #00e5ff;
+  --accent2: #7c3aed;
+  --green: #00e676;
+  --red: #ff1744;
+  --amber: #ffab00;
+  --text: #f0f0ff;
+  --muted: #6b6b8a;
+  --font-display: 'Syne', sans-serif;
+  --font-mono: 'Space Mono', monospace;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-mono);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+/* animated grid bg */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0,229,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,229,255,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+.app { position: relative; z-index: 1; max-width: 480px; margin: 0 auto; padding: 0 0 100px; }
+
+/* HEADER */
+.header {
+  padding: 20px 16px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.header h1 {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.last-update {
+  font-size: 10px;
+  color: var(--muted);
+}
+.live-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(0,230,118,0.1);
+  border: 1px solid rgba(0,230,118,0.3);
+  border-radius: 20px;
+  padding: 3px 10px;
+  font-size: 10px;
+  color: var(--green);
+  font-family: var(--font-mono);
+}
+.live-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--green);
+  animation: pulse 1.5s infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(0.8)} }
+
+/* NAV */
+.nav {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: rgba(10,10,15,0.95);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid var(--border);
+  display: flex;
+  z-index: 100;
+  max-width: 480px;
+  margin: 0 auto;
+}
+.nav-btn {
+  flex: 1;
+  padding: 12px 4px 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  cursor: pointer;
+  transition: color 0.2s;
+  position: relative;
+}
+.nav-btn.active { color: var(--accent); }
+.nav-btn.active::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 20%; right: 20%;
+  height: 2px;
+  background: var(--accent);
+  border-radius: 0 0 2px 2px;
+}
+.nav-icon { font-size: 20px; line-height: 1; }
+
+/* TABS */
+.tab { display: none; padding: 16px; }
+.tab.active { display: block; }
+
+/* SECTION LABEL */
+.section-label {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  margin-top: 20px;
+}
+.section-label:first-child { margin-top: 0; }
+
+/* CARDS */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 12px;
+  transition: border-color 0.2s;
+}
+.card:hover { border-color: rgba(0,229,255,0.3); }
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+.card-title {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+}
+.card-sub {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+/* HOLDING CARD */
+.holding-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+}
+.holding-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.holding-name {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 800;
+}
+.holding-amount {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 1px;
+}
+.holding-value {
+  text-align: right;
+}
+.holding-price {
+  font-size: 18px;
+  font-weight: 700;
+}
+.holding-pl {
+  font-size: 12px;
+  margin-top: 2px;
+}
+.pos { color: var(--green); }
+.neg { color: var(--red); }
+.neu { color: var(--amber); }
+.holding-bar {
+  height: 3px;
+  background: var(--border);
+  border-radius: 2px;
+  margin: 10px 0;
+  overflow: hidden;
+}
+.holding-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.6s ease;
+}
+.ai-advice {
+  font-size: 12px;
+  line-height: 1.6;
+  color: #c0c0d8;
+  background: var(--surface2);
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-top: 10px;
+  border-left: 3px solid var(--accent);
+}
+.ai-advice.loading {
+  color: var(--muted);
+  font-style: italic;
+  border-left-color: var(--border);
+}
+.ai-advice.bullish { border-left-color: var(--green); }
+.ai-advice.bearish { border-left-color: var(--red); }
+.ai-advice.hold { border-left-color: var(--amber); }
+
+/* ALERT CARD */
+.alert-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  position: relative;
+  overflow: hidden;
+}
+.alert-card.hot { border-color: rgba(255,23,68,0.5); }
+.alert-card.hot::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,23,68,0.05), transparent);
+  pointer-events: none;
+}
+.alert-card.rising { border-color: rgba(0,230,118,0.4); }
+.alert-card.rising::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(0,230,118,0.04), transparent);
+  pointer-events: none;
+}
+.alert-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.alert-ticker {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 800;
+}
+.alert-name {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 1px;
+}
+.alert-change {
+  font-size: 22px;
+  font-weight: 700;
+}
+.momentum-bar {
+  margin: 10px 0 6px;
+}
+.momentum-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+.momentum-track {
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.momentum-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.8s ease;
+}
+.alert-signals {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+.signal-chip {
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 20px;
+  font-family: var(--font-mono);
+}
+.chip-green { background: rgba(0,230,118,0.15); color: var(--green); border: 1px solid rgba(0,230,118,0.3); }
+.chip-red { background: rgba(255,23,68,0.15); color: var(--red); border: 1px solid rgba(255,23,68,0.3); }
+.chip-amber { background: rgba(255,171,0,0.15); color: var(--amber); border: 1px solid rgba(255,171,0,0.3); }
+.chip-blue { background: rgba(0,229,255,0.1); color: var(--accent); border: 1px solid rgba(0,229,255,0.25); }
+
+/* SCAN BUTTON */
+.scan-btn {
+  width: 100%;
+  padding: 16px;
+  background: linear-gradient(135deg, var(--accent2), #4f46e5);
+  border: none;
+  border-radius: 14px;
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.1s;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.scan-btn:active { transform: scale(0.98); opacity: 0.9; }
+.scan-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* INVESTOR CARD */
+.pick-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+}
+.pick-card.top-pick { border-color: rgba(0,229,255,0.4); }
+.pick-card.top-pick::before {
+  content: '⚡ TOP PICK';
+  display: block;
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.1em;
+  margin-bottom: 8px;
+}
+.pick-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+.pick-ticker {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 800;
+}
+.pick-name {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.pick-price {
+  text-align: right;
+  font-size: 18px;
+  font-weight: 700;
+}
+.pick-target {
+  font-size: 11px;
+  margin-top: 2px;
+}
+.pick-reasoning {
+  font-size: 12px;
+  line-height: 1.6;
+  color: #c0c0d8;
+  margin-top: 8px;
+}
+.buy-zone {
+  display: flex;
+  justify-content: space-between;
+  background: rgba(0,230,118,0.08);
+  border: 1px solid rgba(0,230,118,0.2);
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-top: 10px;
+}
+.buy-zone-item { text-align: center; }
+.buy-zone-label { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+.buy-zone-val { font-size: 14px; font-weight: 700; color: var(--green); margin-top: 2px; }
+
+/* CRYPTO ROW */
+.crypto-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+.crypto-row:last-child { border-bottom: none; }
+.crypto-left { display: flex; align-items: center; gap: 10px; }
+.crypto-icon {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: var(--surface2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+.crypto-sym {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+}
+.crypto-name { font-size: 11px; color: var(--muted); }
+.crypto-right { text-align: right; }
+.crypto-price { font-size: 15px; font-weight: 700; }
+.crypto-chg { font-size: 12px; margin-top: 1px; }
+.momentum-score {
+  display: inline-block;
+  font-size: 10px;
+  padding: 2px 7px;
+  border-radius: 10px;
+  margin-top: 3px;
+  font-weight: 700;
+}
+.score-hot { background: rgba(255,23,68,0.2); color: var(--red); }
+.score-rising { background: rgba(0,230,118,0.15); color: var(--green); }
+.score-neutral { background: rgba(107,107,138,0.2); color: var(--muted); }
+.score-falling { background: rgba(255,171,0,0.15); color: var(--amber); }
+
+/* MISC */
+.divider { height: 1px; background: var(--border); margin: 16px 0; }
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--muted);
+  font-size: 13px;
+}
+.loading-spinner {
+  display: inline-block;
+  width: 16px; height: 16px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.refresh-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+.refresh-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+.refresh-btn:hover { border-color: var(--accent); color: var(--accent); }
+.status-text { font-size: 11px; color: var(--muted); }
+.tag {
+  display: inline-block;
+  font-size: 9px;
+  padding: 2px 7px;
+  border-radius: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  vertical-align: middle;
+  margin-left: 6px;
+}
+.tag-ai { background: rgba(124,58,237,0.2); color: #a78bfa; border: 1px solid rgba(124,58,237,0.3); }
+.tag-live { background: rgba(0,229,255,0.1); color: var(--accent); border: 1px solid rgba(0,229,255,0.25); }
+.tag-data { background: rgba(255,171,0,0.15); color: var(--amber); border: 1px solid rgba(255,171,0,0.3); }
+/* MARKET TRACKER BAR */
+.market-bar {
+  margin: 0 16px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 14px;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.market-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--muted);
+  padding-right: 10px;
+  border-right: 1px solid var(--border);
+}
+.market-item:last-child { border-right: none; padding-right: 0; }
+.market-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.dot-open { background: var(--green); box-shadow: 0 0 6px var(--green); animation: pulse 2s infinite; }
+.dot-closed { background: var(--red); }
+.dot-always { background: var(--accent); box-shadow: 0 0 6px var(--accent); animation: pulse 2s infinite; }
+.market-label { font-weight: 500; color: var(--text); }
+.market-time { color: var(--muted); }
+/* TRY AI BUTTON */
+.try-ai-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(124,58,237,0.15);
+  border: 1px solid rgba(124,58,237,0.4);
+  border-radius: 8px;
+  color: #a78bfa;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  padding: 4px 10px;
+  cursor: pointer;
+  margin-top: 6px;
+  transition: all 0.2s;
+}
+.try-ai-btn:hover { background: rgba(124,58,237,0.3); }
+.try-ai-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.ai-btn-row { display:flex; gap:6px; flex-wrap:wrap; margin-top:6px; }
+.btn-groq { background:rgba(124,58,237,0.15); border:1px solid rgba(124,58,237,0.4); color:#a78bfa; font-family:var(--font-mono); font-size:10px; padding:5px 10px; border-radius:8px; cursor:pointer; }
+.btn-groq:hover { background:rgba(124,58,237,0.3); }
+.btn-gemini { background:rgba(66,133,244,0.12); border:1px solid rgba(66,133,244,0.4); color:#4aadf5; font-family:var(--font-mono); font-size:10px; padding:5px 10px; border-radius:8px; cursor:pointer; }
+.btn-gemini:hover { background:rgba(66,133,244,0.25); }
+.btn-data { background:rgba(255,171,0,0.12); border:1px solid rgba(255,171,0,0.35); color:var(--amber); font-family:var(--font-mono); font-size:10px; padding:5px 10px; border-radius:8px; cursor:pointer; }
+.btn-data:hover { background:rgba(255,171,0,0.22); }
+/* BETS TAB */
+.sport-filter-btn {
+  padding: 5px 12px; font-size: 11px; border-radius: 20px;
+  border: 1px solid var(--border); background: transparent;
+  color: var(--muted); cursor: pointer; font-family: var(--font-mono);
+  transition: all 0.15s; white-space: nowrap;
+}
+.sport-filter-btn.active {
+  background: var(--accent2); border-color: var(--accent2);
+  color: #fff;
+}
+.game-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 16px; padding: 14px 16px; margin-bottom: 12px;
+}
+.game-card.value-bet { border-color: rgba(0,230,118,0.4); }
+.game-card.top-pick { border-color: rgba(0,229,255,0.4); }
+.game-header {
+  display: flex; justify-content: space-between;
+  align-items: flex-start; margin-bottom: 10px;
+}
+.game-teams { font-family: var(--font-display); font-size: 15px; font-weight: 700; line-height: 1.3; }
+.game-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.game-time { text-align: right; font-size: 12px; color: var(--muted); }
+.game-time strong { color: var(--text); display: block; font-size: 13px; }
+.odds-row {
+  display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0;
+}
+.odds-chip {
+  font-size: 11px; padding: 4px 10px; border-radius: 8px;
+  background: var(--surface2); border: 1px solid var(--border);
+  font-family: var(--font-mono);
+}
+.odds-chip.value { background: rgba(0,230,118,0.12); border-color: rgba(0,230,118,0.3); color: var(--green); }
+.odds-chip.pick { background: rgba(0,229,255,0.1); border-color: rgba(0,229,255,0.25); color: var(--accent); }
+.confidence-bar {
+  height: 4px; background: var(--border); border-radius: 2px;
+  overflow: hidden; margin: 6px 0 3px;
+}
+.confidence-fill { height: 100%; border-radius: 2px; }
+.prop-section {
+  margin-top: 10px; padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+.prop-title {
+  font-size: 11px; font-weight: 700; color: var(--muted);
+  text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px;
+}
+.prop-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 12px;
+}
+.prop-row:last-child { border-bottom: none; }
+.prop-player { font-weight: 600; }
+.prop-stat { color: var(--muted); font-size: 11px; }
+.prop-conf {
+  font-size: 11px; font-weight: 700;
+  padding: 2px 7px; border-radius: 6px;
+}
+.conf-high { background: rgba(0,230,118,0.15); color: var(--green); }
+.conf-med { background: rgba(255,171,0,0.15); color: var(--amber); }
+.conf-low { background: rgba(107,107,138,0.2); color: var(--muted); }
+.parlay-box {
+  margin-top: 10px; padding: 12px;
+  background: linear-gradient(135deg, rgba(124,58,237,0.12), rgba(0,229,255,0.06));
+  border: 1px solid rgba(124,58,237,0.3); border-radius: 12px;
+}
+.parlay-title {
+  font-family: var(--font-display); font-size: 13px; font-weight: 700;
+  color: #a78bfa; margin-bottom: 8px;
+}
+.parlay-leg {
+  font-size: 12px; padding: 3px 0; color: var(--text);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.parlay-leg:last-child { border-bottom: none; }
+.parlay-odds {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.1);
+}
+.bet365-btn {
+  display: inline-block; margin-top: 10px; padding: 8px 16px;
+  background: #ffb900; border-radius: 8px; border: none;
+  color: #000; font-weight: 700; font-size: 12px;
+  cursor: pointer; font-family: var(--font-mono);
+  text-decoration: none;
+}
+.advice-source {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+.source-ai { color: #a78bfa; }
+.source-data { color: var(--amber); }
+.source-limited { color: var(--muted); }
+
+/* MODAL */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.85);
+  z-index: 200;
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 24px 24px 0 0;
+  padding: 20px 16px 40px;
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.modal-title {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+.modal-sub { font-size: 12px; color: var(--muted); margin-bottom: 20px; }
+.modal-close {
+  float: right;
+  background: var(--surface2);
+  border: none;
+  color: var(--muted);
+  font-size: 18px;
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+.field-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; margin-top: 14px; }
+.field-input {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  padding: 10px 12px;
+  outline: none;
+}
+.field-input:focus { border-color: var(--accent); }
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.type-toggle { display: flex; gap: 8px; margin-bottom: 4px; }
+.type-btn {
+  flex: 1; padding: 9px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.type-btn.active { background: var(--accent2); border-color: var(--accent2); color: #fff; }
+.add-holding-btn {
+  width: 100%;
+  margin-top: 18px;
+  padding: 14px;
+  background: linear-gradient(135deg, var(--accent2), #4f46e5);
+  border: none;
+  border-radius: 12px;
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.upload-zone {
+  border: 2px dashed var(--border);
+  border-radius: 12px;
+  padding: 24px 16px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s;
+  margin-bottom: 12px;
+}
+.upload-zone:hover { border-color: var(--accent); }
+.upload-zone-icon { font-size: 32px; margin-bottom: 8px; }
+.upload-zone-text { font-size: 13px; color: var(--muted); }
+.upload-preview { width: 100%; border-radius: 10px; margin-bottom: 12px; display: none; }
+.holding-edit-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.holding-edit-row:last-child { border-bottom: none; }
+.delete-btn {
+  background: rgba(255,23,68,0.15);
+  border: 1px solid rgba(255,23,68,0.3);
+  color: var(--red);
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-size: 11px;
+  cursor: pointer;
+  font-family: var(--font-mono);
+}
+.edit-portfolio-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 5px 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.edit-portfolio-btn:hover { border-color: var(--accent); color: var(--accent); }
+.divider-or {
+  display: flex; align-items: center; gap: 10px;
+  color: var(--muted); font-size: 11px; margin: 14px 0;
+}
+.divider-or::before, .divider-or::after {
+  content: ''; flex: 1; height: 1px; background: var(--border);
+}
+.scan-result-item {
+  background: var(--surface2);
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+.scan-result-item strong { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- HEADER -->
+  <div class="header" style="margin-bottom:16px">
+    <div>
+      <h1>Market Advisor</h1>
+      <div class="last-update" id="last-update">Last updated: —</div>
+    </div>
+    <div class="live-badge"><span class="live-dot"></span> LIVE</div>
+  </div>
+
+  <!-- MARKET STATUS BAR -->
+  <div class="market-bar" id="market-bar">
+    <div class="market-item">
+      <div class="market-dot" id="nyse-dot"></div>
+      <div>
+        <div class="market-label" id="nyse-label">NYSE / NASDAQ</div>
+        <div class="market-time" id="nyse-time">Loading...</div>
+      </div>
+    </div>
+    <div class="market-item">
+      <div class="market-dot" id="tsx-dot"></div>
+      <div>
+        <div class="market-label" id="tsx-label">TSX (Canada)</div>
+        <div class="market-time" id="tsx-time">Loading...</div>
+      </div>
+    </div>
+    <div class="market-item">
+      <div class="market-dot dot-always"></div>
+      <div>
+        <div class="market-label">Crypto</div>
+        <div class="market-time">Always open 24/7</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: PORTFOLIO -->
+  <div class="tab active" id="tab-portfolio">
+    <div class="refresh-row">
+      <span class="status-text" id="port-status">Loading holdings...</span>
+      <div style="display:flex;gap:8px">
+        <button class="edit-portfolio-btn" onclick="openModal()">✎ Edit</button>
+        <button class="refresh-btn" onclick="loadPortfolio()">↻ Refresh</button>
+      </div>
+    </div>
+    <div id="holdings-container"></div>
+    <div class="section-label" style="margin-top:8px">Portfolio summary <span class="tag tag-ai">AI</span></div>
+    <div class="card">
+      <div id="port-summary" class="ai-advice loading">Loading your portfolio analysis...</div>
+    </div>
+  </div>
+
+  <!-- EDIT PORTFOLIO MODAL -->
+  <div class="modal-overlay" id="modal-overlay" onclick="handleOverlayClick(event)">
+    <div class="modal">
+      <button class="modal-close" onclick="closeModal()">✕</button>
+      <div class="modal-title">Edit Portfolio</div>
+      <div class="modal-sub">Add, remove or update your holdings</div>
+
+      <!-- Current holdings list -->
+      <div class="section-label" style="margin-top:0">Current holdings</div>
+      <div id="edit-holdings-list"></div>
+
+      <div class="divider-or">ADD NEW HOLDING</div>
+
+      <!-- Screenshot upload -->
+      <div class="upload-zone" onclick="document.getElementById('screenshot-input').click()">
+        <div class="upload-zone-icon">📸</div>
+        <div class="upload-zone-text">Tap to upload a Wealthsimple screenshot<br><span style="font-size:11px;opacity:0.6">AI will read your holdings automatically</span></div>
+      </div>
+      <input type="file" id="screenshot-input" accept="image/*" style="display:none" onchange="handleScreenshot(event)"/>
+      <img id="upload-preview" class="upload-preview"/>
+      <div id="scan-status" style="font-size:12px;color:var(--muted);text-align:center;margin-bottom:12px;display:none"></div>
+      <div id="scan-results" style="display:none">
+        <div class="section-label">Detected holdings — tap to add</div>
+        <div id="scan-results-list"></div>
+      </div>
+
+      <div class="divider-or">OR ENTER MANUALLY</div>
+
+      <!-- Manual entry -->
+      <div class="type-toggle">
+        <button class="type-btn active" id="type-stock" onclick="setType('stock')">📈 Stock</button>
+        <button class="type-btn" id="type-crypto" onclick="setType('crypto')">₿ Crypto</button>
+      </div>
+      <div class="field-label">Ticker symbol</div>
+      <input class="field-input" id="new-ticker" placeholder="e.g. AAPL, XRP, DOGE" style="text-transform:uppercase"/>
+      <div class="field-row">
+        <div>
+          <div class="field-label">Shares / Coins</div>
+          <input class="field-input" id="new-amount" type="number" placeholder="0.00" step="any"/>
+        </div>
+        <div>
+          <div class="field-label">Avg cost paid</div>
+          <input class="field-input" id="new-cost" type="number" placeholder="0.00" step="any"/>
+        </div>
+      </div>
+      <div class="field-label">Currency</div>
+      <select class="field-input" id="new-currency">
+        <option value="CAD">CAD (Canadian Dollar)</option>
+        <option value="USD">USD (US Dollar)</option>
+      </select>
+      <button class="add-holding-btn" onclick="addHoldingManual()">+ Add to Portfolio</button>
+    </div>
+  </div>
+
+  <!-- TAB: MOMENTUM -->
+  <div class="tab" id="tab-momentum">
+    <button class="scan-btn" id="scan-btn" onclick="runMomentumScan()">
+      <span>⚡</span> Scan for Momentum Plays
+    </button>
+    <div class="section-label">🔥 Hot right now <span class="tag tag-live">LIVE</span></div>
+    <div id="hot-container"><div class="empty-state">Hit scan to find momentum plays across stocks and crypto.</div></div>
+    <div class="section-label" style="margin-top:20px">📈 Building momentum</div>
+    <div id="rising-container"></div>
+    <div class="section-label" style="margin-top:20px">⚠️ Exit signals</div>
+    <div id="exit-container"></div>
+  </div>
+
+  <!-- TAB: SMART PICKS -->
+  <div class="tab" id="tab-picks">
+    <div class="refresh-row">
+      <span class="status-text" id="picks-status">Loading recommendations...</span>
+      <button class="refresh-btn" onclick="loadSmartPicks()">↻ Refresh</button>
+    </div>
+    <div class="section-label">Best buys right now <span class="tag tag-ai">AI</span></div>
+    <div id="picks-container"><div class="empty-state">Loading smart picks...</div></div>
+  </div>
+
+  <!-- TAB: CRYPTO -->
+  <div class="tab" id="tab-crypto">
+    <div class="refresh-row">
+      <span class="status-text" id="crypto-status">Loading crypto data...</span>
+      <button class="refresh-btn" onclick="loadCrypto()">↻ Refresh</button>
+    </div>
+    <div class="section-label">Your crypto <span class="tag tag-live">LIVE</span></div>
+    <div class="card" id="your-crypto"></div>
+    <div class="section-label" style="margin-top:4px">All major coins</div>
+    <div class="card" id="all-crypto"></div>
+  </div>
+
+  <!-- TAB: BUY NOW -->
+  <div class="tab" id="tab-buy">
+    <div class="refresh-row">
+      <span class="status-text" id="buy-status">Loading opportunities...</span>
+      <button class="refresh-btn" onclick="loadBuyNow()">↻ Refresh</button>
+    </div>
+    <div id="market-context-bar" style="background:var(--surface2);border-radius:12px;padding:10px 14px;margin-bottom:14px;font-size:11px;color:var(--muted);display:none"></div>
+    <div class="section-label">⚡ Buy now — stocks <span class="tag tag-ai">AI</span></div>
+    <div id="buy-stocks-container"><div class="empty-state"><span class="loading-spinner"></span></div></div>
+    <div class="section-label" style="margin-top:4px">⚡ Buy now — crypto <span class="tag tag-ai">AI</span></div>
+    <div id="buy-crypto-container"><div class="empty-state"><span class="loading-spinner"></span></div></div>
+  </div>
+
+  <!-- TAB: SELL NOW -->
+  <div class="tab" id="tab-sell">
+    <div class="refresh-row">
+      <span class="status-text" id="sell-status">Analyzing your holdings...</span>
+      <button class="refresh-btn" onclick="loadSellNow()">↻ Refresh</button>
+    </div>
+    <div class="section-label">🚨 Your holdings — exit analysis <span class="tag tag-ai">AI</span></div>
+    <div id="sell-container"><div class="empty-state"><span class="loading-spinner"></span></div></div>
+  </div>
+
+  <!-- TAB: BETS -->
+  <div class="tab" id="tab-bets">
+    <div class="refresh-row">
+      <span class="status-text" id="bets-status">Loading sports data...</span>
+      <button class="refresh-btn" onclick="loadBets(true)">↻ Refresh</button>
+    </div>
+    <div id="bets-sport-filter" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px"></div>
+    <div class="section-label">⭐ Best value bets today <span class="tag tag-ai">AI</span></div>
+    <div id="bets-value-container"><div class="empty-state"><span class="loading-spinner"></span> Loading upcoming games...</div></div>
+    <div class="section-label" style="margin-top:4px">🎯 Today's game picks</div>
+    <div id="bets-games-container"><div class="empty-state"><span class="loading-spinner"></span></div></div>
+    <div style="margin:16px 0 8px;padding:10px 12px;background:rgba(255,23,68,0.08);border:1px solid rgba(255,23,68,0.2);border-radius:10px;font-size:11px;color:var(--muted);line-height:1.5">
+      ⚠️ <strong style="color:var(--text)">Gambling disclaimer:</strong> No bet is ever guaranteed. These are data-driven suggestions only. Only bet what you can afford to lose. If gambling is causing problems, visit <strong>connexontario.ca</strong> or call <strong>1-866-531-2600</strong>.
+    </div>
+  </div>
+
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="nav" style="overflow-x:auto">
+  <button class="nav-btn active" onclick="showTab('portfolio',this)">
+    <span class="nav-icon">💼</span>Portfolio
+  </button>
+  <button class="nav-btn" onclick="showTab('momentum',this)">
+    <span class="nav-icon">⚡</span>Alerts
+  </button>
+  <button class="nav-btn" onclick="showTab('buy',this)">
+    <span class="nav-icon">🟢</span>Buy
+  </button>
+  <button class="nav-btn" onclick="showTab('sell',this)">
+    <span class="nav-icon">🔴</span>Sell
+  </button>
+  <button class="nav-btn" onclick="showTab('crypto',this)">
+    <span class="nav-icon">₿</span>Crypto
+  </button>
+  <button class="nav-btn" onclick="showTab('bets',this)">
+    <span class="nav-icon">🎲</span>Bets
+  </button>
+</nav>
+
+<script>
+const FINNHUB_KEY='d85po9pr01qm56ks8sh0d85po9pr01qm56ks8shg';
+const FH='https://finnhub.io/api/v1';
+const CG='https://api.coingecko.com/api/v3';
+const GROQ_KEY='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';
+const FNG_API='https://api.alternative.me/fng/?limit=7';
+const USD_TO_CAD=1.36;
+
+const STOCK_POOL=[
+  'NVDA','AAPL','MSFT','META','AMZN','GOOG','TSLA','ORCL','ADBE','PLTR',
+  'SMCI','CRWD','SNOW','RDDT','ARM','ANET','DDOG','MDB','NET','GME',
+  'AMC','BBBY','SPCE','SNDL','CLOV','BB','NOK','COIN','HOOD','SQ',
+  'PYPL','SOFI','AFRM','UPST','LCID','RIVN','NKLA','NFLX','DIS','SPOT',
+  'SNAP','PINS','RBLX','TTWO','EA','IMUX','MRNA','BNTX','PFE','NVAX',
+  'XOM','CVX','OXY','JPM','BAC','GS','WMT','TGT','COST','HD',
+  'NKE','SBUX','MCD','AMD','INTC','QCOM','MU','AVGO','TXN','MSTR',
+  'DKNG','BYND','BIDU','JD','BABA','NIO','XPEV','LI','UBER','LYFT',
+  'ABNB','DASH','LLY','ABBV','MRK','UNH','SHOP','IONQ','RGTI','QUBT',
+  'QBTS','KULR','SOUN','MARA','RIOT','HUT','CLSK','RKLB','ASTS','LUNR',
+  'ACHR','JOBY','CHPT','BLNK','EVGO','TLRY','CGC','ACB','IIPR','KTOS',
+  'UPWK','FVRR','ETSY','CHWY','PRTY','EXPR','CTRM','NAKD','KOSS','SENS',
+  'ATOS','MVIS','IDEX','ONTX','ADXS','SPY','QQQ','ARKK','TQQQ','IWM',
+];
+const CRYPTO_LIST=[
+  {id:'bitcoin',sym:'BTC',name:'Bitcoin',icon:'₿'},
+  {id:'ethereum',sym:'ETH',name:'Ethereum',icon:'Ξ'},
+  {id:'ripple',sym:'XRP',name:'XRP',icon:'✕'},
+  {id:'solana',sym:'SOL',name:'Solana',icon:'◎'},
+  {id:'dogecoin',sym:'DOGE',name:'Dogecoin',icon:'Ð'},
+  {id:'shiba-inu',sym:'SHIB',name:'Shiba Inu',icon:'🐕'},
+  {id:'cardano',sym:'ADA',name:'Cardano',icon:'₳'},
+  {id:'hedera-hashgraph',sym:'HBAR',name:'Hedera',icon:'ℏ'},
+  {id:'pepe',sym:'PEPE',name:'Pepe',icon:'🐸'},
+  {id:'avalanche-2',sym:'AVAX',name:'Avalanche',icon:'▲'},
+  {id:'chainlink',sym:'LINK',name:'Chainlink',icon:'⬡'},
+  {id:'polkadot',sym:'DOT',name:'Polkadot',icon:'●'},
+  {id:'uniswap',sym:'UNI',name:'Uniswap',icon:'🦄'},
+  {id:'stellar',sym:'XLM',name:'Stellar',icon:'✦'},
+  {id:'litecoin',sym:'LTC',name:'Litecoin',icon:'Ł'},
+  {id:'near',sym:'NEAR',name:'NEAR Protocol',icon:'Ⓝ'},
+  {id:'internet-computer',sym:'ICP',name:'Internet Computer',icon:'∞'},
+  {id:'bonk',sym:'BONK',name:'Bonk',icon:'🔨'},
+  {id:'sui',sym:'SUI',name:'Sui',icon:'💧'},
+  {id:'injective-protocol',sym:'INJ',name:'Injective',icon:'🌀'},
+];
+const CG_ID_MAP={
+  'BTC':'bitcoin','ETH':'ethereum','XRP':'ripple','SOL':'solana',
+  'DOGE':'dogecoin','SHIB':'shiba-inu','ADA':'cardano','HBAR':'hedera-hashgraph',
+  'PEPE':'pepe','AVAX':'avalanche-2','LINK':'chainlink','DOT':'polkadot',
+  'UNI':'uniswap','XLM':'stellar','LTC':'litecoin','NEAR':'near',
+  'ICP':'internet-computer','MATIC':'matic-network','BONK':'bonk',
+  'SUI':'sui','INJ':'injective-protocol','BNB':'binancecoin',
+};
+
+let cgCache=null,cgCacheTime=0,fhCache={},profileCache={};
+let marketBriefing=null,marketBriefingTime=0;
+let dynamicStocksCache=null,dynamicStocksCacheTime=0;
+
+const DEFAULT_HOLDINGS=[
+  {ticker:'HBAR',type:'crypto',cgId:'hedera-hashgraph',amount:369.265464,currency:'CAD',costCAD:100.00},
+  {ticker:'IMUX',type:'stock',amount:5.0075,currency:'USD',costUSD:67.25},
+  {ticker:'NFLX',type:'stock',amount:0.4249,currency:'USD',costUSD:35.98},
+  {ticker:'XRP',type:'crypto',cgId:'ripple',amount:259.941412,currency:'CAD',costCAD:811.68},
+];
+function getHoldings(){try{const s=localStorage.getItem('marketadvisor_holdings');return s?JSON.parse(s):DEFAULT_HOLDINGS;}catch(e){return DEFAULT_HOLDINGS;}}
+function saveHoldings(h){try{localStorage.setItem('marketadvisor_holdings',JSON.stringify(h));}catch(e){}}
+
+function now(){return new Date().toLocaleTimeString('en-CA',{hour:'2-digit',minute:'2-digit'});}
+function fmtC(n,dec=2){return n!=null&&!isNaN(n)?'$'+parseFloat(n).toFixed(dec):'—';}
+function fmtPct(n){const v=parseFloat(n);return isNaN(v)?'—':(v>=0?'+':'')+v.toFixed(2)+'%';}
+function plClass(n){return parseFloat(n)>=0?'pos':'neg';}
+function setHTML(id,html){const el=document.getElementById(id);if(el)el.innerHTML=html;}
+function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+function isValid(t){return t&&typeof t==='string'&&t.length>0&&t!=='undefined'&&t!=='null';}
+
+async function fhGet(path){
+  if(fhCache[path]&&Date.now()-fhCache[path].t<60000)return fhCache[path].d;
+  try{const r=await fetch(`${FH}${path}&token=${FINNHUB_KEY}`);const d=await r.json();if(d&&!d.error)fhCache[path]={d,t:Date.now()};return d;}
+  catch(e){return null;}
+}
+async function getProfile(ticker){
+  if(!isValid(ticker))return null;
+  if(profileCache[ticker])return profileCache[ticker];
+  const d=await fhGet(`/stock/profile2?symbol=${ticker}`);
+  if(d?.name)profileCache[ticker]=d;
+  return d||null;
+}
+async function cgGetMarkets(){
+  if(cgCache&&Date.now()-cgCacheTime<120000)return cgCache;
+  try{
+    const ids=CRYPTO_LIST.map(c=>c.id).join(',');
+    const r=await fetch(`${CG}/coins/markets?vs_currency=usd&ids=${ids}&order=market_cap_desc&per_page=50&sparkline=false&price_change_percentage=1h,24h,7d`);
+    cgCache=await r.json();cgCacheTime=Date.now();return cgCache;
+  }catch(e){return[];}
+}
+async function getMarketBriefing(){
+  if(marketBriefing&&Date.now()-marketBriefingTime<300000)return marketBriefing;
+  const [fngData,cgData,cgTrending,btcSent]=await Promise.all([
+    fetch(FNG_API).then(r=>r.json()).catch(()=>null),
+    cgGetMarkets(),
+    fetch(`${CG}/search/trending`).then(r=>r.json()).catch(()=>null),
+    fhGet(`/news-sentiment?symbol=BTC`),
+  ]);
+  const fng=fngData?.data?.[0];
+  const fngValue=fng?parseInt(fng.value):50;
+  const fngLabel=fng?.value_classification||'Neutral';
+  const fng7d=fngData?.data?.slice(0,7).map(d=>parseInt(d.value))||[];
+  const fngTrend=fng7d.length>1?(fng7d[0]>fng7d[fng7d.length-1]?'rising':'falling'):'flat';
+  const cgMap={};if(cgData)cgData.forEach(c=>cgMap[c.id]=c);
+  const btc=cgMap['bitcoin'],eth=cgMap['ethereum'],xrp=cgMap['ripple'];
+  const trendingCoins=cgTrending?.coins?.slice(0,5).map(c=>c.item.symbol).join(', ')||'—';
+  const newsSentScore=btcSent?.sentiment?.bullishPercent?Math.round(btcSent.sentiment.bullishPercent*100):null;
+  marketBriefing={fngValue,fngLabel,fngTrend,
+    btcPrice:btc?.current_price,btcChg24:btc?.price_change_percentage_24h,btcChg7d:btc?.price_change_percentage_7d_in_currency,
+    ethChg24:eth?.price_change_percentage_24h,xrpPrice:xrp?.current_price,xrpChg24:xrp?.price_change_percentage_24h,
+    trendingCoins,newsSentScore,cgMap,timestamp:now()};
+  marketBriefingTime=Date.now();
+  return marketBriefing;
+}
+
+function briefingToText(b,assetType='any'){
+  if(!b)return'Market data unavailable.';
+  const fngMeaning=b.fngValue>75?'Investors are very greedy — market may be overheated':b.fngValue>55?'Investors are feeling confident':b.fngValue>45?'Market sentiment is neutral':b.fngValue>25?'Investors are fearful — could be a buying opportunity':'Investors are extremely fearful — historically a good time to buy';
+  const base=`MARKET CONTEXT (${b.timestamp}): Market mood: ${b.fngValue}/100 — ${fngMeaning}. Trend: ${b.fngTrend} over 7 days. BTC: $${b.btcPrice?.toFixed(0)||'?'} (${fmtPct(b.btcChg24)} today). ETH: ${fmtPct(b.ethChg24)}. XRP: $${b.xrpPrice?.toFixed(4)||'?'} (${fmtPct(b.xrpChg24)}). Trending crypto: ${b.trendingCoins}. Crypto news: ${b.newsSentScore?b.newsSentScore+'% positive':'unavailable'}.`;
+  if(assetType==='stock')return base+' You are analyzing a STOCK — use the stock\'s own price action and momentum data. Do not say you lack information.';
+  return base;
+}
+
+// ── GROQ AI ───────────────────────────────────────────
+// ── AI CONFIG ─────────────────────────────────────────
+const GEMINI_KEY='AIzaSyBAX_g3AMmKogXlbuiFG_-fB_-MjRotRUw';
+const GEMINI_URL='https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent';
+const AI_SYS='You are a friendly investment and sports betting advisor helping a complete beginner named Evan. Write like texting a knowledgeable friend. Be specific with dollar amounts. No jargon without explanation. Never say you lack information.';
+
+// Tries Groq first (faster/smarter). Falls back to Gemini if Groq is rate-limited.
+// Returns {text, source} — source is 'groq', 'gemini', or null
+async function callAI(prompt){
+  // Try Groq first, Gemini as fallback
+  // Step 1: Groq
+  try{
+    const r = await fetch('https://api.groq.com/openai/v1/chat/completions',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+GROQ_KEY},
+      body:JSON.stringify({
+        model:'llama-3.3-70b-versatile',
+        max_tokens:300,
+        temperature:0.4,
+        messages:[
+          {role:'system',content:AI_SYS},
+          {role:'user',content:prompt}
+        ]
+      })
+    });
+    if(r.ok){
+      const d = await r.json();
+      const text = d.choices && d.choices[0] && d.choices[0].message && d.choices[0].message.content;
+      if(text) return {text:text, source:'groq'};
+    }
+  }catch(e){ /* Groq failed, try Gemini */ }
+
+  // Step 2: Gemini
+  try{
+    const r = await fetch(GEMINI_URL+'?key='+GEMINI_KEY,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        contents:[{parts:[{text:AI_SYS+'\n\n'+prompt}]}],
+        generationConfig:{maxOutputTokens:300,temperature:0.4}
+      })
+    });
+    if(r.ok){
+      const d = await r.json();
+      const text = d.candidates && d.candidates[0] && d.candidates[0].content &&
+                   d.candidates[0].content.parts && d.candidates[0].content.parts[0] &&
+                   d.candidates[0].content.parts[0].text;
+      if(text) return {text:text, source:'gemini'};
+    }
+  }catch(e){ /* Gemini also failed */ }
+
+  return null;
+}
+
+// Source label shown on every AI advice box
+function aiSourceLabel(source){
+  if(source==='groq') return '<div class="advice-source source-ai">🤖 AI Analysis — Groq</div>';
+  if(source==='gemini') return '<div class="advice-source source-ai" style="color:#4aadf5">🤖 AI Analysis — Google Gemini</div>';
+  return '<div class="advice-source source-data">📊 Data-Based Analysis</div>';
+}
+
+// callGroq kept as alias so all existing .then(aiText=>) calls still work
+async function callGroq(prompt){
+  const result = await callAI(prompt);
+  return result?.text || null;
+}
+
+// Direct single-AI callers for the manual buttons
+async function callGroqDirect(prompt){
+  try{
+    const r = await fetch('https://api.groq.com/openai/v1/chat/completions',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+GROQ_KEY},
+      body:JSON.stringify({model:'llama-3.3-70b-versatile',max_tokens:300,temperature:0.4,
+        messages:[{role:'system',content:AI_SYS},{role:'user',content:prompt}]})
+    });
+    if(r.ok){
+      const d=await r.json();
+      const t=d.choices&&d.choices[0]&&d.choices[0].message&&d.choices[0].message.content;
+      if(t) return {text:t,source:'groq'};
+    }
+    return {text:null,source:'groq',error:'Groq returned '+r.status};
+  }catch(e){ return {text:null,source:'groq',error:e.message}; }
+}
+
+async function callGeminiDirect(prompt){
+  try{
+    const r = await fetch(GEMINI_URL+'?key='+GEMINI_KEY,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({contents:[{parts:[{text:AI_SYS+'\n\n'+prompt}]}],
+        generationConfig:{maxOutputTokens:300,temperature:0.4}})
+    });
+    if(r.ok){
+      const d=await r.json();
+      const t=d.candidates&&d.candidates[0]&&d.candidates[0].content&&
+              d.candidates[0].content.parts&&d.candidates[0].content.parts[0]&&
+              d.candidates[0].content.parts[0].text;
+      if(t) return {text:t,source:'gemini'};
+    }
+    return {text:null,source:'gemini',error:'Gemini returned '+r.status};
+  }catch(e){ return {text:null,source:'gemini',error:e.message}; }
+}
+
+// Fire a specific AI from a button click, show result in the card
+async function fireAI(elId, aiType){
+  const el = document.getElementById(elId);
+  if(!el) return;
+  el.innerHTML = '<div class="advice-source source-ai">Loading from '+aiType+'...</div><em style="color:var(--muted);font-size:12px">Please wait...</em>';
+  
+  const data = getAdviceData(elId);
+  if(!data){ el.innerHTML = buildAIButtons(elId,'No data — please refresh the page.'); return; }
+  
+  if(!marketBriefing||!marketBriefing.fngValue) marketBriefing = await getMarketBriefing();
+
+  var prompt;
+  var isBet = data.type==='bet' && data.gameData;
+
+  if(isBet){
+    // Sport betting prompt
+    var g=data.gameData;
+    var homeProb=americanToProb(g.homeOdds);
+    var awayProb=americanToProb(g.awayOdds);
+    var sport=g.sport||activeSport;
+    var sportName=sport.includes('basketball')?'NBA basketball':sport.includes('hockey')?'NHL hockey':
+      sport.includes('football')?'NFL football':sport.includes('baseball')?'MLB baseball':
+      sport.includes('soccer')?'soccer':sport.includes('mma')?'MMA/UFC':
+      sport.includes('tennis')?'tennis':'sports';
+    var propTypes=sport.includes('basketball')?'Points Over/Under, Rebounds Over/Under, Assists Over/Under':
+      sport.includes('hockey')?'Goals Over/Under (0.5 or 1.5), Shots on Goal Over/Under':
+      sport.includes('football')?'Passing Yards Over/Under, Rushing Yards Over/Under, Touchdowns':
+      sport.includes('baseball')?'Strikeouts Over/Under, Hits Over/Under, Total Bases':
+      sport.includes('soccer')?'Goals Over/Under (0.5 or 1.5), Shots on Target':
+      sport.includes('mma')?'Fight goes the distance Yes/No, Method of Victory (KO/TKO/Submission/Decision), Round betting':
+      sport.includes('tennis')?'Total games Over/Under, Set betting, First set winner':'props for this sport';
+    prompt='You are a sharp sports betting analyst. Game: '+g.away+' @ '+g.home+' ('+sportName+').'+
+      ' Moneyline: '+g.home+' '+formatOdds(g.homeOdds)+' ('+homeProb+'%) vs '+g.away+' '+formatOdds(g.awayOdds)+' ('+awayProb+'%).'+
+      (g.total?' Over/Under: '+g.total.total+' (Over '+formatOdds(g.total.overOdds)+', Under '+formatOdds(g.total.underOdds)+').':'')+
+      ' Give: 1) BEST BET with reasoning. 2) Confidence %. 3) PARLAY: 3 props using ONLY these prop types: '+propTypes+'. Each prop: player name, type, line, confidence %. Only props 65%+ confident. 4) Verdict in 1 sentence. Tell Evan to verify on Bet365.';
+  } else {
+    var ctx = briefingToText(marketBriefing, data.type);
+    var curr = data.currency||'USD';
+    prompt = ctx+'\n\n'+(data.name||data.ticker)+' ('+data.ticker+') — '+data.type+':\n'+
+      '- Paid: '+fmtC(data.costTotal)+' '+curr+'\n'+
+      '- Current value: '+fmtC(data.currentVal)+' '+curr+'\n'+
+      '- Overall: '+(data.plPct>=0?'UP':'DOWN')+' '+Math.abs(data.plPct).toFixed(1)+'% ('+fmtC(Math.abs(data.pl))+' '+curr+')\n'+
+      '- Today: '+(data.dayChgPct>=0?'up':'down')+' '+Math.abs(data.dayChgPct).toFixed(2)+'%\n'+
+      (data.chg7d!=null?'- This week: '+(data.chg7d>=0?'up':'down')+' '+Math.abs(data.chg7d).toFixed(1)+'%\n':'')+
+      '\nStart with BUY MORE / HOLD / TAKE PROFITS / SELL. Plain English for a beginner. Max 3 sentences.';
+  }
+
+  var result = aiType==='groq' ? await callGroqDirect(prompt) : await callGeminiDirect(prompt);
+  
+  if(result.text){
+    var u=result.text.toUpperCase();
+    var cls=isBet?'bullish':(u.includes('TAKE PROFITS')||u.startsWith('SELL'))?'bearish':(u.startsWith('BUY')?'bullish':'hold');
+    el.className='ai-advice '+cls;
+    var formatted=isBet?formatBetAnalysis(result.text,'',''):result.text.split('\n').join('<br>');
+    var buttons=isBet?buildBetAIButtons(elId):buildAIButtons(elId,'');
+    el.innerHTML=aiSourceLabel(result.source)+
+      '<div style="font-size:13px;line-height:1.6">'+formatted+'</div>'+buttons;
+  } else {
+    var buttons2=isBet?buildBetAIButtons(elId):buildAIButtons(elId,'');
+    el.innerHTML = buttons2.replace('<div class="ai-btn-row"','<div style="font-size:11px;color:var(--red);margin-bottom:6px">'+(aiType==='groq'?'🤖 Groq':'✨ Gemini')+' unavailable — try the other or use Data Advice</div><div class="ai-btn-row"');
+  }
+}
+
+// Bet-specific AI buttons
+function buildBetAIButtons(elId){
+  var btnId = 'aibtn-' + (++_btnCounter);
+  _btnMap[btnId] = elId;
+  var out = '<div class="ai-btn-row" id="'+btnId+'">';
+  out += '<button class="btn-groq" onclick="_fireAI(this)">🤖 Groq Pick</button>';
+  out += '<button class="btn-gemini" onclick="_fireAI(this)">✨ Gemini Pick</button>';
+  out += '<button class="btn-data" onclick="_fireBetData(this)">📊 Odds Analysis</button>';
+  out += '</div>';
+  return out;
+}
+
+function _fireBetData(btn){
+  var row=btn.parentElement;
+  var elId=_btnMap[row.id];
+  if(!elId) return;
+  var data=getAdviceData(elId);
+  if(!data||!data.gameData) return;
+  var g=data.gameData;
+  var homeProb=americanToProb(g.homeOdds);
+  var awayProb=americanToProb(g.awayOdds);
+  var fav=homeProb>=awayProb?{team:g.home,prob:homeProb,odds:g.homeOdds}:{team:g.away,prob:awayProb,odds:g.awayOdds};
+  var el=document.getElementById(elId);
+  if(!el) return;
+  el.className='ai-advice hold';
+  el.innerHTML='<div class="advice-source source-data">📊 Odds-Based Analysis</div>'+
+    '<div style="font-size:13px;line-height:1.6">'+
+    '<strong>Best Bet:</strong> '+fav.team+' Moneyline ('+formatOdds(fav.odds)+')<br>'+
+    '<strong>Why:</strong> '+fav.team+' is the statistical favourite at '+fav.prob+'% implied probability. '+
+    (g.total?'The total is set at '+g.total.total+' — consider whether a high or low-scoring game is likely based on recent form.':'')+
+    '<br><strong>Confidence:</strong> '+(fav.prob>60?'Moderate — clear favourite':'Low — very even matchup, bet small if at all')+'</div>'+
+    buildBetAIButtons(elId);
+}
+
+// Global button ID counter to avoid all quote escaping issues in onclick
+var _btnCounter = 0;
+var _btnMap = {};
+
+function buildAIButtons(elId, msg){
+  var btnId = 'aibtn-' + (++_btnCounter);
+  _btnMap[btnId] = elId;
+  var out = '';
+  if(msg) out += '<div style="font-size:11px;color:var(--red);margin-bottom:6px">'+msg+'</div>';
+  out += '<div class="ai-btn-row" id="'+btnId+'">';
+  out += '<button class="btn-groq" onclick="_fireAI(this)">🤖 Groq</button>';
+  out += '<button class="btn-gemini" onclick="_fireAI(this)">✨ Gemini</button>';
+  out += '<button class="btn-data" onclick="_fireData(this)">📊 Data Advice</button>';
+  out += '</div>';
+  return out;
+}
+
+function _fireAI(btn){
+  var row = btn.parentElement;
+  var elId = _btnMap[row.id];
+  var aiType = btn.textContent.includes('Groq') ? 'groq' : 'gemini';
+  if(elId) fireAI(elId, aiType);
+}
+
+function _fireData(btn){
+  var row = btn.parentElement;
+  var elId = _btnMap[row.id];
+  if(elId) fireDataAdvice(elId);
+}
+
+function fireDataAdvice(elId){
+  var el=document.getElementById(elId);
+  if(!el) return;
+  var data=getAdviceData(elId);
+  if(!data){el.innerHTML='<div class="advice-source source-data">📊 No data available.</div>'+buildAIButtons(elId,'');return;}
+  var ruleText=ruleBasedAdvice(Object.assign({},data,{fngValue:marketBriefing?marketBriefing.fngValue:50}));
+  var u=ruleText.toUpperCase();
+  var cls=(u.startsWith('SELL')||u.includes('TAKE PROFITS'))?'bearish':u.startsWith('HOLD')?'hold':'bullish';
+  el.className='ai-advice '+cls;
+  el.innerHTML='<div class="advice-source source-data">📊 Data-Based Analysis</div>'+
+    '<div style="font-size:13px;line-height:1.6">'+ruleText.split('\n').join('<br>')+'</div>'+
+    buildAIButtons(elId,'');
+}
+
+// ── RULE-BASED ADVICE (always works, no API needed) ───
+function ruleBasedAdvice(data){
+  const{ticker,name,type,plPct,pl,dayChgPct,chg7d,price,costTotal,currency,fngValue}=data;
+  const displayName=name||ticker;
+  const curr=currency||'USD';
+  const fng=fngValue||50;
+  let verdict='',reason='',action='';
+
+  // Determine verdict based on multiple factors
+  if(plPct>80&&dayChgPct>3){
+    verdict='TAKE PROFITS';
+    reason=`${displayName} has more than doubled from what you paid and is up another ${dayChgPct.toFixed(1)}% today — that's a great run.`;
+    action=`Consider selling at least half your position around ${fmtC(price,price<1?4:2)} ${curr} to lock in those gains while keeping some for further upside.`;
+  } else if(plPct>30&&chg7d<-5){
+    verdict='TAKE PROFITS';
+    reason=`You're up ${plPct.toFixed(0)}% overall on ${displayName} but it's dropped ${Math.abs(chg7d).toFixed(1)}% this week — the momentum may be fading.`;
+    action=`Taking some profits now around ${fmtC(price,price<1?4:2)} ${curr} would lock in your gains before a potential further drop.`;
+  } else if(plPct<-40&&chg7d<-5){
+    verdict='SELL';
+    reason=`${displayName} is down ${Math.abs(plPct).toFixed(0)}% from what you paid and dropped another ${Math.abs(chg7d).toFixed(1)}% this week — the trend is still going down.`;
+    action=`Cutting your losses here around ${fmtC(price,price<1?4:2)} ${curr} would stop further damage. Only hold if you strongly believe in a recovery.`;
+  } else if(plPct<-20&&dayChgPct<-3){
+    verdict='HOLD';
+    reason=`${displayName} is having a rough day (down ${Math.abs(dayChgPct).toFixed(1)}%) on top of an existing loss of ${Math.abs(plPct).toFixed(0)}%. Selling during a down day usually means selling low.`;
+    action=`Hold for now and reassess when the daily volatility settles. If it drops another 10-15% consider cutting losses.`;
+  } else if(dayChgPct>5&&chg7d>5){
+    verdict='HOLD';
+    reason=`${displayName} is up ${dayChgPct.toFixed(1)}% today and ${chg7d.toFixed(1)}% this week — solid momentum in the right direction.`;
+    action=`Hold your position and let it run. Set a mental alert if it drops back more than 5% from here.`;
+  } else if(fng<30&&plPct<-20){
+    verdict='HOLD';
+    reason=`The overall market is very fearful right now (${fng}/100) which often means prices are temporarily low — a bad time to sell.`;
+    action=`Hold ${displayName} through the fear. Historically, selling during peak fear locks in losses that recover over time.`;
+  } else if(plPct>0&&plPct<=30){
+    verdict='HOLD';
+    reason=`${displayName} is up ${plPct.toFixed(0)}% from what you paid — a solid gain.`;
+    action=`Hold for now. There's no urgent reason to sell a profitable position unless you need the money.`;
+  } else {
+    verdict='HOLD';
+    reason=`${displayName} is roughly ${plPct>=0?'flat to slightly up':'flat to slightly down'} from your purchase price with no extreme signals today.`;
+    action=`No strong reason to buy more or sell right now — hold and check back when there's a clearer signal.`;
+  }
+  return `${verdict}. ${reason} ${action}`;
+}
+
+// ── ADVICE RENDERER (AI first, rule-based fallback) ───
+async function loadAdvice(elId,data,delayMs,forceAI){
+  if(delayMs===undefined) delayMs=0;
+  if(forceAI===undefined) forceAI=false;
+  
+  var el = document.getElementById(elId);
+  if(!el) return;
+
+  if(delayMs>0 && !forceAI) await sleep(delayMs);
+
+  el.innerHTML = '<div class="advice-source source-ai">🤖 Getting AI Analysis...</div><em style="color:var(--muted);font-size:12px">Loading...</em>';
+
+  // Store data for retry button
+  storeAdviceData(elId, data);
+
+  // Ensure market briefing is loaded
+  if(!marketBriefing || !marketBriefing.fngValue){
+    marketBriefing = await getMarketBriefing();
+  }
+
+  // Build prompt
+  var ctx = briefingToText(marketBriefing, data.type);
+  var curr = data.currency || 'USD';
+  var prompt = ctx + '\n\n' +
+    (data.name||data.ticker) + ' (' + data.ticker + ') — ' + data.type + ':\n' +
+    '- Paid: ' + fmtC(data.costTotal) + ' ' + curr + '\n' +
+    '- Current value: ' + fmtC(data.currentVal) + ' ' + curr + '\n' +
+    '- Overall: ' + (data.plPct>=0?'UP':'DOWN') + ' ' + Math.abs(data.plPct).toFixed(1) + '% (' + (data.pl>=0?'profit':'loss') + ' of ' + fmtC(Math.abs(data.pl)) + ' ' + curr + ')\n' +
+    '- Today: ' + (data.dayChgPct>=0?'up':'down') + ' ' + Math.abs(data.dayChgPct).toFixed(2) + '%\n' +
+    (data.chg7d!=null ? '- This week: ' + (data.chg7d>=0?'up':'down') + ' ' + Math.abs(data.chg7d).toFixed(1) + '%\n' : '') +
+    '\nStart with BUY MORE / HOLD / TAKE PROFITS / SELL. Plain English for a beginner. Max 3 sentences.';
+
+  // Call AI
+  var result = await callAI(prompt);
+  var aiText = result ? result.text : null;
+  var aiSource = result ? result.source : null;
+
+  if(aiText){
+    var u = aiText.toUpperCase();
+    var cls = (u.includes('TAKE PROFITS')||u.startsWith('SELL')) ? 'bearish' :
+              (u.startsWith('BUY')) ? 'bullish' : 'hold';
+    el.className = 'ai-advice ' + cls;
+    el.innerHTML = aiSourceLabel(aiSource) +
+      '<div style="font-size:13px;line-height:1.6">' + aiText.replace(/\n/g,'<br>') + '</div>';
+  } else {
+    // Rule-based fallback — build DOM elements to avoid all quote escaping issues
+    var ruleText = ruleBasedAdvice(Object.assign({}, data, {fngValue: marketBriefing ? marketBriefing.fngValue : 50}));
+    var u2 = ruleText.toUpperCase();
+    var cls2 = (u2.startsWith('SELL')||u2.includes('TAKE PROFITS')) ? 'bearish' :
+               u2.startsWith('HOLD') ? 'hold' : 'bullish';
+    el.className = 'ai-advice ' + cls2;
+    el.innerHTML = '';
+    el.innerHTML = 
+      '<div class="advice-source source-data">📊 Data-Based Analysis — tap below to try AI</div>'+
+      '<div style="font-size:13px;line-height:1.6">'+ruleText.split('\n').join('<br>')+'</div>'+
+      buildAIButtons(elId,'');
+  }
+}
+
+
+async function retryAI(elId){
+  const btn=document.getElementById(`retry-${elId}`);
+  if(btn){btn.disabled=true;btn.textContent='Loading...';}
+  const data = getAdviceData(elId);
+  if(!data){
+    const el=document.getElementById(elId);
+    if(el) el.innerHTML='<div class="advice-source source-data">📊 Please refresh the page and try again.</div>';
+    return;
+  }
+  await loadAdvice(elId,data,0,true);
+}
+
+// ── MARKET STATUS BAR ─────────────────────────────────
+function updateMarketBar(){
+  const now=new Date();
+
+  // Pure UTC math — works on all browsers including Android Chrome
+  // ET is UTC-5 (EST) or UTC-4 (EDT). Use toLocaleString just for display, not logic.
+  const utcMs = now.getTime();
+  // Determine if DST is active in ET (second Sunday March to first Sunday November)
+  const year = now.getUTCFullYear();
+  // DST start: 2nd Sunday in March at 2am ET = 7am UTC
+  const dstStart = new Date(Date.UTC(year, 2, 1));
+  dstStart.setUTCDate(1 + (7 - dstStart.getUTCDay()) % 7 + 7); // 2nd Sunday
+  dstStart.setUTCHours(7);
+  // DST end: 1st Sunday in November at 2am ET = 6am UTC
+  const dstEnd = new Date(Date.UTC(year, 10, 1));
+  dstEnd.setUTCDate(1 + (7 - dstEnd.getUTCDay()) % 7); // 1st Sunday
+  dstEnd.setUTCHours(6);
+  const isDST = utcMs >= dstStart.getTime() && utcMs < dstEnd.getTime();
+  const etOffset = isDST ? -4 : -5; // EDT or EST
+  const etMs = utcMs + etOffset * 3600000;
+  const etDate = new Date(etMs);
+  const etHour = etDate.getUTCHours();
+  const etMin = etDate.getUTCMinutes();
+  const etDay = etDate.getUTCDay(); // 0=Sun, 6=Sat
+  const etDecimal = etHour + (etMin / 60);
+  const isWeekday = etDay >= 1 && etDay <= 5;
+
+  // NYSE/NASDAQ: 9:30-16:00 ET weekdays
+  const nyseOpen = isWeekday && etDecimal >= 9.5 && etDecimal < 16;
+  const tsxOpen = nyseOpen;
+
+  // Local display time
+  const ptStr = now.toLocaleTimeString('en-CA',{
+    timeZone:'America/Vancouver', hour:'numeric', minute:'2-digit', hour12:true
+  });
+
+  // Time until open/close
+  function timeUntil(targetHour,targetMin){
+    const ptTime=new Date(now.toLocaleString('en-US',{timeZone:'America/Vancouver'}));
+    const etNow=new Date(now.toLocaleString('en-US',{timeZone:'America/New_York'}));
+    const target=new Date(etNow);
+    target.setHours(targetHour,targetMin,0,0);
+    const diff=target-etNow;
+    if(diff<0)return null;
+    const h=Math.floor(diff/3600000),m=Math.floor((diff%3600000)/60000);
+    return h>0?`${h}h ${m}m`:m>0?`${m}m`:'closing soon';
+  }
+
+  const nyseEl=document.getElementById('nyse-dot');
+  const nyseLabel=document.getElementById('nyse-label');
+  const nyseTime=document.getElementById('nyse-time');
+  const tsxEl=document.getElementById('tsx-dot');
+  const tsxTime=document.getElementById('tsx-time');
+
+  if(nyseEl){
+    nyseEl.className='market-dot '+(nyseOpen?'dot-open':'dot-closed');
+    if(nyseOpen){
+      const closes=timeUntil(16,0);
+      nyseTime.textContent=closes?`Open · Closes in ${closes}`:'Open';
+    } else {
+      // Next open
+      if(!isWeekday||etDecimal>=16){
+        const daysUntil=etDay===5?3:etDay===6?2:1;
+        nyseTime.textContent=`Closed · Opens ${daysUntil===1?'tomorrow':'Monday'} at 6:30 AM PT`;
+      } else {
+        const opens=timeUntil(9,30);
+        nyseTime.textContent=opens?`Closed · Opens in ${opens}`:'Closed';
+      }
+    }
+  }
+  if(tsxEl){
+    tsxEl.className='market-dot '+(tsxOpen?'dot-open':'dot-closed');
+    tsxTime.textContent=tsxOpen?'Open':'Closed';
+  }
+  document.getElementById('last-update').textContent=`Updated: ${ptStr}`;
+}
+
+// ── TAB NAVIGATION ────────────────────────────────────
+function showTab(name,btn){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  if(btn)btn.classList.add('active');
+  if(name==='buy')loadBuyNow();
+  if(name==='sell')loadSellNow();
+  if(name==='crypto')loadCrypto();
+  if(name==='bets')loadBets(false);
+}
+
+// ── MODAL ─────────────────────────────────────────────
+let currentType='stock';
+function openModal(){
+  document.getElementById('modal-overlay').classList.add('open');
+  renderEditList();
+  ['new-ticker','new-amount','new-cost'].forEach(id=>document.getElementById(id).value='');
+  ['upload-preview','scan-results','scan-status'].forEach(id=>{const e=document.getElementById(id);if(e)e.style.display='none';});
+}
+function closeModal(){document.getElementById('modal-overlay').classList.remove('open');}
+function handleOverlayClick(e){if(e.target===document.getElementById('modal-overlay'))closeModal();}
+function setType(t){
+  currentType=t;
+  document.getElementById('type-stock').classList.toggle('active',t==='stock');
+  document.getElementById('type-crypto').classList.toggle('active',t==='crypto');
+  document.getElementById('new-currency').value=t==='crypto'?'CAD':'USD';
+}
+function renderEditList(){
+  const holdings=getHoldings();
+  const el=document.getElementById('edit-holdings-list');
+  if(!holdings.length){el.innerHTML='<div style="font-size:13px;color:var(--muted);padding:10px 0">No holdings yet.</div>';return;}
+  el.innerHTML=holdings.map((h,i)=>`
+    <div class="holding-edit-row">
+      <div><span style="font-weight:700;font-family:var(--font-display)">${h.ticker}</span>
+      <span style="color:var(--muted);font-size:11px;margin-left:6px">${h.amount} · ${h.currency}</span></div>
+      <button class="delete-btn" onclick="deleteHolding(${i})">✕ Remove</button>
+    </div>`).join('');
+}
+function deleteHolding(idx){const h=getHoldings();h.splice(idx,1);saveHoldings(h);renderEditList();loadPortfolio();}
+function addHoldingManual(){
+  const ticker=document.getElementById('new-ticker').value.trim().toUpperCase();
+  const amount=parseFloat(document.getElementById('new-amount').value);
+  const cost=parseFloat(document.getElementById('new-cost').value);
+  const currency=document.getElementById('new-currency').value;
+  if(!isValid(ticker)||isNaN(amount)||amount<=0||isNaN(cost)||cost<=0){alert('Please fill in all fields with valid numbers.');return;}
+  const holdings=getHoldings();
+  const existing=holdings.findIndex(h=>h.ticker===ticker);
+  const totalCost=cost*amount;
+  const newH={ticker,type:currentType,amount,currency,
+    ...(currency==='CAD'?{costCAD:totalCost}:{costUSD:totalCost}),
+    ...(currentType==='crypto'?{cgId:CG_ID_MAP[ticker]||ticker.toLowerCase()}:{})};
+  if(existing>=0){
+    const old=holdings[existing];
+    holdings[existing].amount=parseFloat((old.amount+amount).toFixed(6));
+    if(currency==='CAD')holdings[existing].costCAD=(old.costCAD||0)+totalCost;
+    else holdings[existing].costUSD=(old.costUSD||0)+totalCost;
+  }else holdings.push(newH);
+  saveHoldings(holdings);renderEditList();loadPortfolio();
+  ['new-ticker','new-amount','new-cost'].forEach(id=>document.getElementById(id).value='');
+  alert(`${ticker} added!`);
+}
+async function handleScreenshot(event){
+  const file=event.target.files[0];if(!file)return;
+  const preview=document.getElementById('upload-preview');
+  const statusEl=document.getElementById('scan-status');
+  const resultsEl=document.getElementById('scan-results');
+  const reader=new FileReader();
+  reader.onerror=()=>{statusEl.style.display='block';statusEl.innerHTML='⚠️ Could not read image file. Try again.';};
+  reader.onload=async(e)=>{
+    preview.src=e.target.result;preview.style.display='block';
+    statusEl.style.display='block';statusEl.innerHTML='<span class="loading-spinner"></span> Reading your screenshot...';
+    resultsEl.style.display='none';
+    const base64=e.target.result.split(',')[1];
+    if(!base64){statusEl.innerHTML='⚠️ Image could not be read. Try a different screenshot.';return;}
+    const mimeType=file.type||'image/jpeg';
+    const prompt='Look at this investment portfolio screenshot from Wealthsimple. Find every stock and cryptocurrency holding. For each one extract: ticker symbol, type (stock or crypto), number of shares or coins, current dollar value, currency (CAD or USD), and percentage change. Return ONLY a raw JSON array, no markdown, no backticks, no explanation. Example format: [{"ticker":"NFLX","type":"stock","amount":0.4249,"currentValue":37.70,"currency":"USD","changePercent":4.78},{"ticker":"XRP","type":"crypto","amount":259.94,"currentValue":478.55,"currency":"CAD","changePercent":-41.04}]';
+
+    let text = '';
+
+    // Try Groq vision first (was working before)
+    try{
+      statusEl.innerHTML='<span class="loading-spinner"></span> Reading with Groq AI...';
+      const resp=await fetch('https://api.groq.com/openai/v1/chat/completions',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':`Bearer ${GROQ_KEY}`},
+        body:JSON.stringify({
+          model:'meta-llama/llama-4-scout-17b-16e-instruct',
+          max_tokens:1000,
+          messages:[{role:'user',content:[
+            {type:'image_url',image_url:{url:`data:${mimeType};base64,${base64}`}},
+            {type:'text',text:prompt}
+          ]}]
+        })
+      });
+      if(resp.ok){
+        const data=await resp.json();
+        text=data.choices?.[0]?.message?.content||'';
+        if(text) console.log('Groq vision succeeded');
+      } else {
+        console.warn('Groq vision failed:', resp.status);
+      }
+    }catch(e){console.warn('Groq vision error:',e);}
+
+    // Fallback to Gemini if Groq failed
+    if(!text){
+      try{
+        statusEl.innerHTML='<span class="loading-spinner"></span> Trying Gemini AI...';
+        const resp=await fetch(`${GEMINI_URL}?key=${GEMINI_KEY}`,{
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({
+            contents:[{parts:[
+              {inline_data:{mime_type:mimeType,data:base64}},
+              {text:prompt}
+            ]}],
+            generationConfig:{maxOutputTokens:1000,temperature:0.0},
+            safetySettings:[
+              {category:'HARM_CATEGORY_HARASSMENT',threshold:'BLOCK_NONE'},
+              {category:'HARM_CATEGORY_DANGEROUS_CONTENT',threshold:'BLOCK_NONE'}
+            ]
+          })
+        });
+        if(resp.ok){
+          const data=await resp.json();
+          text=data.candidates?.[0]?.content?.parts?.[0]?.text||'';
+          if(text) console.log('Gemini vision succeeded');
+        } else {
+          console.warn('Gemini vision failed:', resp.status);
+        }
+      }catch(e){console.warn('Gemini vision error:',e);}
+    }
+
+    if(!text){
+      statusEl.innerHTML='⚠️ Could not read screenshot. Please add holdings manually.';
+      return;
+    }
+
+    // Parse JSON — strip any markdown wrapping
+    let detected=[];
+    try{
+      let cleaned=text
+        .replace(/```json/gi,'').replace(/```/g,'')
+        .trim();
+      // Find the JSON array within the response
+      const arrStart=cleaned.indexOf('[');
+      const arrEnd=cleaned.lastIndexOf(']');
+      if(arrStart>=0&&arrEnd>arrStart){
+        cleaned=cleaned.substring(arrStart,arrEnd+1);
+      }
+      detected=JSON.parse(cleaned);
+    }catch(e){
+      console.warn('Parse error:', e, 'Raw:', text);
+      statusEl.innerHTML=`⚠️ Could not read holdings from screenshot. Try a clearer image or add manually.`;
+      return;
+    }
+
+    if(!detected.length){
+      statusEl.innerHTML='⚠️ No holdings detected. Try a clearer screenshot or add manually.';
+      return;
+    }
+
+    statusEl.innerHTML=`✅ Found ${detected.length} holding${detected.length>1?'s':''}! Tap + Add for each one:`;
+    document.getElementById('scan-results-list').innerHTML=detected.map((h,i)=>`
+      <div class="scan-result-item">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <strong>${h.ticker}</strong>
+            <span style="color:var(--muted);font-size:11px;margin-left:6px">${h.amount} ${h.type==='crypto'?'coins':'shares'} · ${h.currency}</span>
+          </div>
+          <button class="add-holding-btn" style="width:auto;padding:6px 14px;font-size:12px;margin:0" onclick="addFromScan(${i})">+ Add</button>
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:3px">Value: $${h.currentValue} · ${h.changePercent>=0?'+':''}${h.changePercent}%</div>
+      </div>`).join('');
+    window._scanResults=detected;
+    resultsEl.style.display='block';
+  };
+  reader.readAsDataURL(file);
+}
+function addFromScan(idx){
+  const h=window._scanResults?.[idx];if(!h)return;
+  const holdings=getHoldings();
+  const newH={ticker:h.ticker,type:h.type,amount:h.amount,currency:h.currency,
+    ...(h.currency==='CAD'?{costCAD:h.currentValue}:{costUSD:h.currentValue}),
+    ...(h.type==='crypto'?{cgId:CG_ID_MAP[h.ticker]||h.ticker.toLowerCase()}:{})};
+  const ex=holdings.findIndex(h2=>h2.ticker===h.ticker);
+  if(ex>=0)holdings[ex]=newH;else holdings.push(newH);
+  saveHoldings(holdings);renderEditList();loadPortfolio();
+  const btn=document.querySelectorAll('#scan-results-list .add-holding-btn')[idx];
+  if(btn){btn.textContent='✓ Added';btn.style.background='var(--green)';btn.disabled=true;}
+}
+
+// ── PLAIN ENGLISH HELPERS ─────────────────────────────
+function plainMomentum(chgPct,volRatio){
+  const abs=Math.abs(chgPct),dir=chgPct>=0?'up':'down';
+  const vol=volRatio>2?'with unusually heavy buying activity':volRatio>1.3?'with above-average interest':'with normal trading volume';
+  if(abs>10)return`🚀 Moving ${dir} ${abs.toFixed(1)}% today — a very big move ${vol}`;
+  if(abs>5)return`📈 ${dir==='up'?'Rising':'Falling'} fast — ${abs.toFixed(1)}% ${dir} today ${vol}`;
+  if(abs>2)return`${dir==='up'?'📈 Climbing':'📉 Slipping'} — ${abs.toFixed(1)}% ${dir} today ${vol}`;
+  return`➡️ Fairly quiet — only ${abs.toFixed(1)}% ${dir} today`;
+}
+function plainPL(plPct){
+  const abs=Math.abs(plPct);
+  if(plPct>100)return`You've more than doubled your money — up ${plPct.toFixed(0)}% overall`;
+  if(plPct>50)return`Strong winner — up ${plPct.toFixed(0)}% from what you paid`;
+  if(plPct>20)return`Doing well — up ${plPct.toFixed(0)}% from your purchase price`;
+  if(plPct>5)return`Slightly ahead — up ${plPct.toFixed(0)}% from what you paid`;
+  if(plPct>-5)return`Roughly even — ${plPct.toFixed(0)}% from what you paid`;
+  if(plPct>-20)return`Down ${abs.toFixed(0)}% from what you paid — a small loss`;
+  if(plPct>-50)return`Down ${abs.toFixed(0)}% — a meaningful loss, worth watching`;
+  return`Down ${abs.toFixed(0)}% — a significant loss from your original investment`;
+}
+function plainExitSignal(score){
+  if(score>=70)return{label:'⚠️ Consider selling',color:'var(--red)',msg:'The numbers suggest this might be a good time to get out or cut your losses'};
+  if(score>=40)return{label:'👀 Keep an eye on this',color:'var(--amber)',msg:'Nothing urgent, but worth checking regularly'};
+  return{label:'✅ Looks fine to hold',color:'var(--green)',msg:'No strong reason to sell right now'};
+}
+function plainBreakoutSignals(newsCount,insiderBuying,volRatio){
+  const signals=[];
+  if(insiderBuying)signals.push('👤 Company insiders (executives) have been buying their own stock — usually a very good sign');
+  if(newsCount>=3)signals.push(`📰 ${newsCount} news stories in the last 24 hours — something is happening`);
+  else if(newsCount>=1)signals.push(`📰 ${newsCount} recent news story — worth reading`);
+  if(volRatio>3)signals.push(`📊 Trading volume is ${volRatio.toFixed(0)}x higher than normal — big money is moving`);
+  else if(volRatio>1.5)signals.push('📊 More people are trading this than usual today');
+  return signals;
+}
+function calcExitScore(h){
+  let s=20;
+  if(h.plPct>50)s+=25;if(h.plPct>20)s+=10;
+  if(h.dayChgPct<-3)s+=15;if(h.chg7d<-10)s+=15;
+  if(h.plPct<-30)s+=10;if(h.dayChgPct>5)s+=10;
+  return Math.min(99,Math.max(1,Math.round(s)));
+}
+
+// ── DYNAMIC STOCK SCANNER ─────────────────────────────
+async function getDynamicStocks(forceRefresh=false){
+  if(!forceRefresh&&dynamicStocksCache&&Date.now()-dynamicStocksCacheTime<600000)return dynamicStocksCache;
+  const userStocks=getHoldings().filter(h=>h.type==='stock').map(h=>h.ticker).filter(isValid);
+  const shuffled=[...STOCK_POOL].sort(()=>Math.random()-0.5).slice(0,170);
+  const toScan=[...new Set([...userStocks,...shuffled])].filter(isValid).slice(0,175);
+  const BATCH=25;const batches=[];
+  for(let i=0;i<toScan.length;i+=BATCH)batches.push(toScan.slice(i,i+BATCH));
+  let results=[];
+  for(let b=0;b<batches.length;b++){
+    const quotes=await Promise.all(batches[b].map(t=>fhGet(`/quote?symbol=${t}`)));
+    for(let i=0;i<batches[b].length;i++){
+      const t=batches[b][i],q=quotes[i];
+      if(!isValid(t)||!q?.c||q.c===0||isNaN(q.c))continue;
+      const chgPct=q.pc&&q.pc>0?((q.c-q.pc)/q.pc*100):0;
+      const volRatio=q.v&&q.av&&q.av>0?(q.v/q.av):1;
+      let score=50;score+=chgPct*3;
+      if(volRatio>2)score+=15;else if(volRatio>1.5)score+=8;
+      if(Math.abs(chgPct)>5)score+=10;if(Math.abs(chgPct)>10)score+=15;
+      if(chgPct>0&&volRatio>1.3)score+=8;
+      score=Math.max(0,Math.min(99,Math.round(score)));
+      results.push({ticker:t,price:q.c,chgPct,volRatio,high:q.h,low:q.l,prevClose:q.pc,score,type:'stock',name:''});
+    }
+    if(b<batches.length-1)await sleep(1200);
+  }
+  results.sort((a,b)=>Math.abs(b.chgPct)-Math.abs(a.chgPct));
+  const userR=results.filter(r=>userStocks.includes(r.ticker));
+  const otherR=results.filter(r=>!userStocks.includes(r.ticker));
+  const top30=[...userR,...otherR].slice(0,30);
+  const profiles=await Promise.all(top30.map(s=>getProfile(s.ticker)));
+  top30.forEach((s,i)=>{if(profiles[i]?.name){s.name=profiles[i].name;s.industry=profiles[i].finnhubIndustry||'Stock';}});
+  dynamicStocksCache=top30;dynamicStocksCacheTime=Date.now();
+  return top30;
+}
+async function getBreakoutSignals(ticker){
+  if(!isValid(ticker))return{newsCount:0,insiderBuying:false,headlines:[]};
+  const today=new Date(),from=new Date();from.setDate(from.getDate()-3);
+  const fmt=d=>d.toISOString().split('T')[0];
+  const [news,insider]=await Promise.all([
+    fhGet(`/company-news?symbol=${ticker}&from=${fmt(from)}&to=${fmt(today)}`),
+    fhGet(`/stock/insider-transactions?symbol=${ticker}`)
+  ]);
+  const newsCount=Array.isArray(news)?Math.min(news.length,10):0;
+  const headlines=Array.isArray(news)?news.slice(0,2).map(n=>n.headline).filter(Boolean):[];
+  const insiderBuying=(insider?.data||[]).filter(t=>t.transactionType==='P'&&t.change>0).length>0;
+  return{newsCount,insiderBuying,headlines};
+}
+
+// ── PORTFOLIO TAB ─────────────────────────────────────
+async function loadPortfolio(){
+  setHTML('port-status','<span class="loading-spinner"></span> Loading...');
+  setHTML('holdings-container','');
+  setHTML('port-summary','<span class="loading-spinner"></span> Analyzing...');
+  const MY_HOLDINGS=getHoldings();
+  const [briefing,cgData]=await Promise.all([getMarketBriefing(),cgGetMarkets()]);
+  const cgMap=briefing?.cgMap||{};
+  const stockH=MY_HOLDINGS.filter(h=>h.type==='stock'&&isValid(h.ticker));
+  const cryptoH=MY_HOLDINGS.filter(h=>h.type==='crypto');
+  const stockQ=await Promise.all(stockH.map(h=>fhGet(`/quote?symbol=${h.ticker}`)));
+  const stockP=await Promise.all(stockH.map(h=>getProfile(h.ticker)));
+
+  let html='',summaryData=[],totalValUSD=0,totalCostUSD=0;
+
+  for(let i=0;i<stockH.length;i++){
+    const h=stockH[i],q=stockQ[i];
+    // Use prevClose as fallback when market is closed (price returns 0)
+    const rawPrice=q?.c||0;
+    const prevClose=q?.pc||0;
+    const price=rawPrice>0?rawPrice:(prevClose>0?prevClose:0);
+    const marketClosed=rawPrice===0&&prevClose>0;
+    const dayChgPct=(!marketClosed&&prevClose>0)?((rawPrice-prevClose)/prevClose*100):0;
+    const value=price*h.amount,cost=h.costUSD||0;
+    const pl=value-cost,plPct=cost&&price>0?(pl/cost*100):0;
+    const companyName=stockP[i]?.name||h.ticker;
+    const industry=stockP[i]?.finnhubIndustry||'Stock';
+    if(price>0){totalValUSD+=value;totalCostUSD+=cost;}
+    const advData={ticker:h.ticker,name:companyName,type:'stock',plPct,pl,dayChgPct,chg7d:null,price,currentVal:value,costTotal:cost,currency:'USD',marketClosed};
+    summaryData.push(advData);
+    const volRatio=q?.v&&q?.av?(q.v/q.av):1;
+    const momText=plainMomentum(dayChgPct,volRatio);
+    const plText=plainPL(plPct);
+    const priceStr=fmtC(price);
+    // Show card even if price=0 (market closed)
+    const valueDisplay=price>0?fmtC(value):(marketClosed?`${fmtC(value)} (est.)`:'—');
+    const plDisplay=price>0||marketClosed?`${pl>=0?'+':''}${fmtC(Math.abs(pl))} (${fmtPct(plPct)})`:'—';
+    html+=`<div class="holding-card">
+      <div class="holding-top">
+        <div><div class="holding-name">${h.ticker}</div>
+          <div style="color:var(--accent);font-size:12px">${companyName}</div>
+          <div class="holding-amount">${h.amount} shares · ${industry}</div></div>
+        <div class="holding-value">
+          <div class="holding-price">${valueDisplay}</div>
+          <div class="holding-pl ${plClass(pl)}">${plDisplay}</div></div></div>
+      ${price>0?`<div class="holding-bar"><div class="holding-bar-fill" style="width:${Math.min(Math.abs(plPct),100)}%;background:${pl>=0?'var(--green)':'var(--red)'}"></div></div>`:''}
+      <div style="font-size:12px;color:var(--muted);margin:6px 0 3px">${price>0?momText:marketClosed?'Market closed — showing last known price':'Price loading — tap Refresh if this persists'}</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:8px">${plText}</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Current price: ${price>0?priceStr+' USD':'—'} · Cost basis: ${fmtC(cost)}</div>
+      <div class="ai-advice loading" id="advice-${h.ticker}">Loading advice...</div>
+    </div>`;
+  }
+
+  for(const h of cryptoH){
+    const cg=cgMap[h.cgId];
+    if(!cg?.current_price)continue;
+    const priceUSD=cg.current_price,priceCAD=priceUSD*USD_TO_CAD;
+    const valueCAD=priceCAD*h.amount;
+    const costCAD=h.costCAD||0;
+    const pl=valueCAD-costCAD,plPct=costCAD?(pl/costCAD*100):0;
+    const dayChgPct=cg.price_change_percentage_24h||0;
+    const chg7d=cg.price_change_percentage_7d_in_currency||0;
+    totalValUSD+=priceUSD*h.amount;totalCostUSD+=costCAD/USD_TO_CAD;
+    const cgMeta=CRYPTO_LIST.find(c=>c.id===h.cgId);
+    const companyName=cgMeta?.name||h.ticker;
+    const advData={ticker:h.ticker,name:companyName,type:'crypto',plPct,pl,dayChgPct,chg7d,price:priceCAD,currentVal:valueCAD,costTotal:costCAD,currency:'CAD'};
+    summaryData.push(advData);
+    const momText=plainMomentum(dayChgPct,1);
+    const plText=plainPL(plPct);
+    html+=`<div class="holding-card">
+      <div class="holding-top">
+        <div><div class="holding-name">${h.ticker}</div>
+          <div style="color:var(--accent);font-size:12px">${companyName}</div>
+          <div class="holding-amount">${h.amount.toFixed(2)} coins · Cryptocurrency</div></div>
+        <div class="holding-value">
+          <div class="holding-price">${fmtC(valueCAD)}</div>
+          <div class="holding-pl ${plClass(pl)}">${pl>=0?'+':''}${fmtC(Math.abs(pl))} (${fmtPct(plPct)})</div></div></div>
+      <div class="holding-bar"><div class="holding-bar-fill" style="width:${Math.min(Math.abs(plPct),100)}%;background:${pl>=0?'var(--green)':'var(--red)'}"></div></div>
+      <div style="font-size:12px;color:var(--muted);margin:6px 0 3px">${momText}</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:8px">${plText}</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Price: ${fmtC(priceCAD,4)} CAD · Cost paid: ${fmtC(costCAD)} CAD · This week: <span class="${plClass(chg7d)}">${fmtPct(chg7d)}</span></div>
+      <div class="ai-advice loading" id="advice-${h.ticker}">Loading advice...</div>
+    </div>`;
+  }
+
+  // If html is empty but we have holdings in config, localStorage may be corrupt - reset
+  if(!html && MY_HOLDINGS.length>0){
+    // Holdings exist but rendered nothing - likely a data issue
+    html = '<div class="empty-state" style="padding:20px"><p style="margin-bottom:12px">Holdings not loading. Tap below to reset to your saved portfolio.</p><button class="refresh-btn" onclick="resetHoldings()" style="margin:0 auto;display:block">↺ Reset Portfolio</button></div>';
+  }
+  setHTML('holdings-container',html||'<div class="empty-state">No holdings found. Tap ✎ Edit to add some.</div>');
+  setHTML('port-status',`Updated ${now()}`);
+  updateMarketBar();
+
+  // Ensure briefing is loaded BEFORE firing advice calls
+  // briefing was loaded above with Promise.all, so marketBriefing is set.
+  // Fire advice calls staggered — each one will find marketBriefing ready.
+  summaryData.forEach((s,i)=>{
+    setTimeout(()=>loadAdvice(`advice-${s.ticker}`,s,0),300+i*2000);
+  });
+
+  // Portfolio summary
+  const totalPL=totalValUSD-totalCostUSD;
+  const totalPLPct=totalCostUSD?(totalPL/totalCostUSD*100).toFixed(1):0;
+  // Ensure briefing is set globally for all subsequent AI calls
+  if(briefing) marketBriefing = briefing;
+  const ctx=briefingToText(briefing,'any');
+  const summaryPrompt=`${ctx}
+
+Evan's portfolio:
+${summaryData.map(s=>`- ${s.name} (${s.ticker}): ${s.plPct>=0?'UP':'DOWN'} ${Math.abs(s.plPct).toFixed(1)}% overall, ${s.dayChgPct>=0?'up':'down'} ${Math.abs(s.dayChgPct).toFixed(2)}% today`).join('\n')}
+Total: ${totalPL>=0?'up':'down'} ${Math.abs(totalPLPct)}% from invested amount.
+
+Write a 3-sentence portfolio summary for a complete beginner. What's the health? What's the single most important action right now?`;
+  const summary=await callGroq(summaryPrompt);
+  if(summary){
+    setHTML('port-summary',`<div class="advice-source source-ai">🤖 AI Portfolio Summary — Groq/Gemini</div>${summary.replace(/\n/g,'<br>')}`);
+  } else {
+    const totalPLCAD=totalPL*USD_TO_CAD;
+    const ruleSum=totalPL>=0
+      ?`Your portfolio is up overall — good news. Your best performer is ${summaryData.sort((a,b)=>b.plPct-a.plPct)[0]?.name||'unknown'}. Keep holding your winners and don't panic sell on down days.`
+      :`Your portfolio is down overall right now, which is normal for new investors. The market is currently ${marketBriefing?.fngLabel||'neutral'} — consider holding through the dip rather than selling at a loss.`;
+    setHTML('port-summary',`<div class="advice-source source-data">📊 Data-Based Summary — AI unavailable</div>${ruleSum}`);
+  }
+}
+
+// ── MOMENTUM SCAN ─────────────────────────────────────
+async function runMomentumScan(){
+  const btn=document.getElementById('scan-btn');
+  btn.disabled=true;btn.innerHTML='<span class="loading-spinner"></span> Scanning 175+ stocks...';
+  setHTML('hot-container','<div class="empty-state"><span class="loading-spinner"></span> Scanning the market — checking 175+ stocks for big moves today. ~15 seconds...</div>');
+  setHTML('rising-container','');setHTML('exit-container','');
+  const [briefing,stockSignals,cgData]=await Promise.all([getMarketBriefing(),getDynamicStocks(true),cgGetMarkets()]);
+  marketBriefing = briefing;
+  const cgMap=briefing?.cgMap||{};
+  let cryptoSigs=[];
+  CRYPTO_LIST.forEach(c=>{
+    const cg=cgMap[c.id];if(!cg)return;
+    const chg1h=cg.price_change_percentage_1h_in_currency||0,chg24=cg.price_change_percentage_24h||0,chg7d=cg.price_change_percentage_7d_in_currency||0;
+    const mom=Math.abs(chg1h)*2+Math.abs(chg24)*0.5;
+    cryptoSigs.push({ticker:c.sym,name:c.name,icon:c.icon,price:cg.current_price,chgPct:chg24,chg1h,chg7d,momentum:mom,score:Math.min(99,Math.round(50+chg24*2+chg1h*3)),type:'crypto'});
+  });
+  const allStocks=stockSignals.filter(s=>isValid(s.ticker)&&s.name).map(s=>({...s,momentum:Math.abs(s.chgPct)*0.5+Math.min(s.volRatio||1,5)*0.5}));
+  const all=[...allStocks,...cryptoSigs].sort((a,b)=>(b.momentum||0)-(a.momentum||0));
+  const hot=all.filter(s=>Math.abs(s.chgPct)>3).slice(0,5);
+  const rising=all.filter(s=>s.chgPct>1&&s.chgPct<=3).slice(0,5);
+  const exiting=all.filter(s=>s.chgPct<-3).slice(0,4);
+  setHTML('hot-container',hot.length?hot.map(s=>renderAlertCard(s,'hot')).join(''):'<div class="empty-state">No big moves right now. Market may be closed (weekdays 6:30 AM–1:00 PM PT).</div>');
+  setHTML('rising-container',rising.length?rising.map(s=>renderAlertCard(s,'rising')).join(''):'<div class="empty-state" style="padding:16px">Nothing building strongly right now.</div>');
+  setHTML('exit-container',exiting.length?exiting.map(s=>renderAlertCard(s,'exit')).join(''):'<div class="empty-state" style="padding:16px">No major drops detected.</div>');
+  if(hot.length>0){
+    const top=hot[0];
+    const advEl=document.getElementById(`momentum-advice-${top.ticker}`);
+    if(advEl){
+      if(!marketBriefing) marketBriefing = briefing;
+      const ctx=briefingToText(marketBriefing,top.type);
+      const aiResult=await callAI(`${ctx}\n\n${top.name||top.ticker} (${top.ticker}) is ${fmtPct(top.chgPct)} today${top.volRatio?` with ${top.volRatio.toFixed(1)}x normal volume`:''}. Is this a real buy opportunity or a trap? Plain English, 2 sentences, specific verdict.`);
+      const aiText=aiResult?.text||null;
+      const aiSrc2=aiResult?.source||null;
+      if(aiText){
+        advEl.innerHTML=`${aiSourceLabel(aiSrc2)}${aiText}`;
+        advEl.className='ai-advice '+(top.chgPct>0?'bullish':'bearish');
+      } else {
+        const rule=top.chgPct>10&&(top.volRatio||1)>2?`This is a very large move with heavy volume — could be a real breakout or a pump-and-dump. Proceed with caution and only invest what you can afford to lose.`:top.chgPct>5?`A solid move up today. If the volume is above average, the move has more credibility. Consider waiting a day to see if it holds before buying.`:`A moderate move. Watch for a few more days of consistent upward movement before committing money.`;
+        advEl.innerHTML=`<div class="advice-source source-data">📊 Data-Based Analysis</div>${rule}`;
+        advEl.className='ai-advice hold';
+      }
+    }
+  }
+  btn.disabled=false;btn.innerHTML='<span>⚡</span> Scan Again';
+}
+function renderAlertCard(s,type){
+  if(!isValid(s.ticker)||!s.name)return'';
+  const isPos=s.chgPct>=0;
+  const scoreVal=Math.min(Math.round((s.momentum||0)*10),99);
+  const scoreColor=scoreVal>60?'var(--red)':scoreVal>35?'var(--green)':'var(--muted)';
+  const priceStr=s.price<0.001?'$'+s.price.toFixed(6):s.price<1?'$'+s.price.toFixed(4):fmtC(s.price);
+  const momText=plainMomentum(s.chgPct,s.volRatio||1);
+  return`<div class="alert-card ${type==='hot'?'hot':type==='rising'?'rising':''}">
+    <div class="alert-top"><div>
+      <div class="alert-ticker">${s.ticker} ${s.icon||''}</div>
+      <div style="font-size:12px;color:var(--accent);margin-top:2px">${s.name}</div>
+      ${s.industry?`<div style="font-size:11px;color:var(--muted)">${s.industry}</div>`:''}
+    </div><div class="alert-change ${isPos?'pos':'neg'}">${fmtPct(s.chgPct)}</div></div>
+    <div style="font-size:12px;color:var(--muted);margin:8px 0">${momText}</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">
+      <span class="signal-chip chip-blue">${priceStr}</span>
+      ${s.chg1h!=null?`<span class="signal-chip chip-${s.chg1h>0?'green':'red'}">Last hour: ${fmtPct(s.chg1h)}</span>`:''}
+      ${type==='hot'?'<span class="signal-chip chip-red">🔥 Big mover today</span>':''}
+      ${type==='exit'?'<span class="signal-chip chip-amber">⚠️ Dropping — watch closely</span>':''}
+    </div>
+    ${type==='hot'?`<div class="ai-advice loading" id="momentum-advice-${s.ticker}" style="margin-top:4px">
+      <em style="color:var(--muted);font-size:12px">Tap a button to get advice:</em>
+    </div>`:''}
+  </div>`;
+  if(type==='hot'){
+    setTimeout(()=>{
+      const aEl=document.getElementById('momentum-advice-'+s.ticker);
+      if(!aEl) return;
+      const aData={ticker:s.ticker,name:s.name||s.ticker,type:s.type||'stock',plPct:0,pl:0,dayChgPct:s.chgPct||0,chg7d:null,price:s.price,currentVal:s.price,costTotal:s.price,currency:'USD'};
+      storeAdviceData('momentum-advice-'+s.ticker, aData);
+      aEl.innerHTML=buildAIButtons('momentum-advice-'+s.ticker,'');
+    },50);
+  }
+}
+
+// ── BUY NOW TAB ───────────────────────────────────────
+async function loadBuyNow(){
+  if(document.getElementById('buy-status').textContent.includes('Updated'))return;
+  setHTML('buy-status','<span class="loading-spinner"></span> Scanning 175+ stocks...');
+  setHTML('buy-stocks-container','<div class="empty-state"><span class="loading-spinner"></span> Scanning market — ~15 seconds...</div>');
+  setHTML('buy-crypto-container','<div class="empty-state"><span class="loading-spinner"></span></div>');
+  const [briefing,dynamicStocks,cgData]=await Promise.all([getMarketBriefing(),getDynamicStocks(false),cgGetMarkets()]);
+  marketBriefing = briefing; // set global for all AI calls
+  const cgMap=briefing?.cgMap||{};
+  const ctxBar=document.getElementById('market-context-bar');
+  if(ctxBar){
+    const fv=briefing?.fngValue||50;
+    const fcolor=fv>60?'var(--red)':fv<40?'var(--green)':'var(--amber)';
+    const fmood=fv>60?'Investors are greedy — be careful':fv<40?'Investors are fearful — potential buying opportunity':'Market mood is neutral';
+    ctxBar.innerHTML=`<span style="color:${fcolor};font-weight:700">Market mood: ${fv}/100</span> — ${fmood}<br><span style="font-size:10px;color:var(--muted)">BTC ${fmtPct(briefing?.btcChg24)} · Trending: ${briefing?.trendingCoins} · ${dynamicStocks.length} stocks scanned</span>`;
+    ctxBar.style.display='block';
+  }
+  let validStocks=dynamicStocks.filter(s=>isValid(s.ticker)&&s.name&&s.price>0);
+  // After hours: stock scanner returns $0 prices. Use cached results if available.
+  if(validStocks.length===0&&dynamicStocksCache){
+    validStocks=dynamicStocksCache.filter(s=>isValid(s.ticker)&&s.name);
+  }
+  const topStocks=validStocks.sort((a,b)=>b.score-a.score).slice(0,6);
+  // Add after-hours notice if market is closed
+  const mktClosed=!validStocks.some(s=>s.price>0&&s.chgPct!==0);
+  let cryptoScores=[];
+  CRYPTO_LIST.forEach(c=>{
+    const cg=cgMap[c.id];if(!cg)return;
+    const chg24=cg.price_change_percentage_24h||0,chg7d=cg.price_change_percentage_7d_in_currency||0,chg1h=cg.price_change_percentage_1h_in_currency||0;
+    let score=50;score+=chg24*2;score+=chg7d*0.5;score+=chg1h*3;
+    if(chg24>0&&chg7d>0)score+=8;if((briefing?.fngValue||50)<40)score+=5;
+    score=Math.max(0,Math.min(99,Math.round(score)));
+    cryptoScores.push({...c,price:cg.current_price,chg24,chgPct:chg24,chg7d,chg1h,score});
+  });
+  const topCrypto=cryptoScores.sort((a,b)=>b.score-a.score).slice(0,6);
+  const afterHoursNote = topStocks.length&&mktClosed ? '<div style="font-size:11px;color:var(--amber);padding:6px 0 10px">⚠️ Market is closed — showing most recent data from last trading session</div>' : '';
+  setHTML('buy-stocks-container',topStocks.length?(afterHoursNote+topStocks.map((s,i)=>renderBuyCard(s,'stock',i===0)).join('')):'<div class="empty-state">No stock data available. Market may be closed — check back on a weekday between 6:30 AM and 1:00 PM PT.</div>');
+  setHTML('buy-crypto-container',topCrypto.map((s,i)=>renderBuyCard(s,'crypto',i===0)).join(''));
+  setHTML('buy-status',`Updated ${now()}`);
+
+  // Stagger: 3 stocks + 3 crypto, 4s apart
+  // Pre-load briefing for buy AI calls
+  if(!marketBriefing) marketBriefing = await getMarketBriefing();
+
+  (async()=>{
+  for(var _si=0; _si<Math.min(topStocks.length,6); _si++){
+    const s=topStocks[_si];
+    // Breakout signals fire in parallel
+    getBreakoutSignals(s.ticker).then(signals=>{
+      const bsigs=plainBreakoutSignals(signals.newsCount,signals.insiderBuying,s.volRatio||1);
+      const bEl=document.getElementById('breakout-'+s.ticker);
+      if(bEl&&bsigs.length)bEl.innerHTML=bsigs.map(sig=>'<div style="font-size:12px;color:var(--amber);margin-bottom:4px">'+sig+'</div>').join('');
+      if(signals.headlines.length){
+        const hEl=document.getElementById('headlines-'+s.ticker);
+        if(hEl)hEl.innerHTML='<div style="font-size:11px;color:var(--muted);margin-top:4px;border-top:1px solid var(--border);padding-top:4px">📰 '+signals.headlines[0]+'</div>';
+      }
+    });
+    const buyId='buy-advice-'+s.ticker;
+    const buyData={ticker:s.ticker,name:s.name,type:'stock',plPct:0,pl:0,dayChgPct:s.chgPct,chg7d:null,price:s.price,currentVal:s.price,costTotal:s.price,currency:'USD'};
+    storeAdviceData(buyId,buyData);
+    const elBuy=document.getElementById(buyId);
+    if(elBuy) elBuy.innerHTML='<div class="advice-source source-ai">🤖 Getting AI Analysis...</div><em style="color:var(--muted);font-size:12px">Loading...</em>';
+    const ctx=briefingToText(marketBriefing,'stock');
+    const price=s.price<1?s.price.toFixed(4):s.price.toFixed(2);
+    const result=await callAI(ctx+'\n\n'+s.name+' ('+s.ticker+') — '+(s.industry||'stock')+': Price $'+price+', today '+(s.chgPct>=0?'up':'down')+' '+Math.abs(s.chgPct).toFixed(2)+'%, volume '+(s.volRatio?s.volRatio.toFixed(1)+'x normal':'normal')+', momentum score '+s.score+'/99.\n\nShould Evan buy '+s.name+'? BUY/HOLD/AVOID + specific entry price + 2 sentences plain English for a beginner.');
+    const aiText=result?result.text:null;
+    const aiSrc=result?result.source:null;
+    const el=document.getElementById(buyId);
+    if(!el) continue;
+    if(aiText){
+      const u=aiText.toUpperCase();
+      el.className='ai-advice '+(u.startsWith('BUY')?'bullish':u.startsWith('AVOID')?'bearish':'hold');
+      el.innerHTML=aiSourceLabel(aiSrc)+'<div style="font-size:13px;line-height:1.6">'+aiText.split('\n').join('<br>')+'</div>'+buildAIButtons(buyId,'');
+    } else {
+      const rule=s.chgPct>5?'HOLD — '+s.name+' is moving fast today. Wait a day to confirm the trend before buying in.':s.chgPct>2?'HOLD — Moderate momentum on '+s.name+'. Watch for a few more days of consistent movement first.':'AVOID for now — No strong momentum signal for '+s.name+' today.';
+      el.className='ai-advice '+(rule.startsWith('HOLD')?'hold':'bearish');
+      el.innerHTML='<div class="advice-source source-data">📊 Data-Based Analysis</div>'+rule+'<br>'+buildAIButtons(buyId,'');
+    }
+  }
+})();
+  (async()=>{
+  for(var _ci=0; _ci<Math.min(topCrypto.length,6); _ci++){
+    const s=topCrypto[_ci];
+    const ticker=s.sym||s.ticker;
+    const cryptoId='buy-advice-'+ticker;
+    const cryptoData={ticker:ticker,name:s.name,type:'crypto',plPct:0,pl:0,dayChgPct:s.chg24||0,chg7d:s.chg7d||null,price:s.price,currentVal:s.price,costTotal:s.price,currency:'USD'};
+    storeAdviceData(cryptoId,cryptoData);
+    const elC=document.getElementById(cryptoId);
+    if(elC) elC.innerHTML='<div class="advice-source source-ai">🤖 Getting AI Analysis...</div><em style="color:var(--muted);font-size:12px">Loading...</em>';
+    const ctx=briefingToText(marketBriefing,'crypto');
+    const price=s.price<1?s.price.toFixed(4):s.price.toFixed(2);
+    const result=await callAI(ctx+'\n\n'+s.name+' ('+ticker+'): Price $'+price+' USD, today '+(s.chg24>=0?'up':'down')+' '+Math.abs(s.chg24||0).toFixed(2)+'%, this week '+(s.chg7d>=0?'up':'down')+' '+Math.abs(s.chg7d||0).toFixed(1)+'%, last hour '+((s.chg1h||0)>=0?'up':'down')+' '+Math.abs(s.chg1h||0).toFixed(2)+'%.\n\nShould Evan buy '+s.name+'? BUY/HOLD/AVOID + specific entry price + 2 sentences for a beginner.');
+    const aiText=result?result.text:null;
+    const aiSrc=result?result.source:null;
+    const el2=document.getElementById(cryptoId);
+    if(!el2) continue;
+    if(aiText){
+      const u=aiText.toUpperCase();
+      el2.className='ai-advice '+(u.startsWith('BUY')?'bullish':u.startsWith('AVOID')?'bearish':'hold');
+      el2.innerHTML=aiSourceLabel(aiSrc)+'<div style="font-size:13px;line-height:1.6">'+aiText.split('\n').join('<br>')+'</div>'+buildAIButtons(cryptoId,'');
+    } else {
+      const rule2=s.chg24>5&&(s.chg7d||0)>5?'HOLD — '+s.name+' is up strongly. Wait for a slight pullback before buying.':s.chg24>2?'HOLD — Moderate upward movement on '+s.name+'. Watch for a few more days first.':'AVOID right now — No strong momentum signal for '+s.name+' today.';
+      el2.className='ai-advice '+(rule2.startsWith('HOLD')?'hold':'bearish');
+      el2.innerHTML='<div class="advice-source source-data">📊 Data-Based Analysis</div>'+rule2+'<br>'+buildAIButtons(cryptoId,'');
+    }
+  }
+})();
+}
+async function retryBuyAI(ticker,name,price,industry,chgPct,volRatio,score){
+  const el=document.getElementById(`buy-advice-${ticker}`);if(!el)return;
+  el.innerHTML='<span class="loading-spinner"></span> Getting AI analysis...';
+  const ctx=briefingToText(marketBriefing,'stock');
+  const p=price<1?price.toFixed(4):price.toFixed(2);
+  const aiText=await callGroq(`${ctx}\n\n${name} (${ticker}) — ${industry}: Price $${p}, today ${chgPct>=0?'up':'down'} ${Math.abs(chgPct).toFixed(2)}%, volume ${volRatio.toFixed(1)}x normal, momentum ${score}/99.\n\nShould Evan buy ${name}? BUY/HOLD/AVOID + specific entry price + 2 sentences for a beginner.`);
+  if(aiText){
+    const u=aiText.toUpperCase();
+    el.className='ai-advice '+(u.startsWith('BUY')?'bullish':u.startsWith('AVOID')?'bearish':'hold');
+    el.innerHTML=`${aiSourceLabel(aiSrc||null)}${aiText.replace(/\n/g,'<br>')}`;
+  } else {
+    el.innerHTML='<div class="advice-source source-data">📊 AI still unavailable — try again in a moment</div>';
+  }
+}
+function renderBuyCard(s,type,isTopPick=false){
+  const ticker=s.sym||s.ticker;
+  const chg=s.chgPct||s.chg24||0;
+  const scoreColor=s.score>=70?'var(--green)':s.score>=50?'var(--amber)':'var(--muted)';
+  const scoreText=s.score>=80?'Very strong signal':s.score>=65?'Good signal':s.score>=50?'Moderate signal':'Weak signal';
+  const priceStr=s.price<0.001?'$'+s.price.toFixed(6):s.price<1?'$'+s.price.toFixed(4):fmtC(s.price);
+  const momText=plainMomentum(chg,s.volRatio||1);
+  return`<div class="pick-card ${isTopPick?'top-pick':''}" id="buy-card-${ticker}">
+    <div class="pick-header">
+      <div><div class="pick-ticker">${ticker} ${s.icon||''}</div>
+        <div class="pick-name" style="color:var(--accent)">${s.name||type}</div>
+        <div class="pick-name">${s.industry||type}</div></div>
+      <div style="text-align:right">
+        <div class="pick-price">${priceStr}</div>
+        <div style="font-size:12px;margin-top:2px" class="${plClass(chg)}">${fmtPct(chg)} today</div>
+        <div style="font-size:11px;margin-top:3px;color:${scoreColor};font-weight:700">${scoreText}</div></div></div>
+    <div style="font-size:12px;color:var(--muted);margin:6px 0">${momText}</div>
+    <div id="breakout-${ticker}"></div>
+    <div id="headlines-${ticker}"></div>
+    <div class="ai-advice loading" id="buy-advice-${ticker}" style="margin-top:8px">
+      <em style="color:var(--muted);font-size:12px">Tap a button to get advice:</em>
+    </div>
+  </div>`;
+  // Register data and show buttons after render
+  setTimeout(()=>{
+    const advEl=document.getElementById('buy-advice-'+ticker);
+    if(!advEl) return;
+    const advData={ticker:ticker,name:s.name||type,type:'stock',plPct:0,pl:0,dayChgPct:chg,chg7d:null,price:s.price,currentVal:s.price,costTotal:s.price,currency:'USD'};
+    storeAdviceData('buy-advice-'+ticker, advData);
+    advEl.innerHTML=buildAIButtons('buy-advice-'+ticker,'');
+  },50);
+}
+
+// ── SELL NOW TAB ──────────────────────────────────────
+async function loadSellNow(){
+  if(document.getElementById('sell-status').textContent.includes('Updated'))return;
+  setHTML('sell-status','<span class="loading-spinner"></span> Checking exit signals...');
+  setHTML('sell-container','<div class="empty-state"><span class="loading-spinner"></span></div>');
+  const MY_HOLDINGS=getHoldings();
+  const [briefing,cgData]=await Promise.all([getMarketBriefing(),cgGetMarkets()]);
+  marketBriefing = briefing; // set global so loadAdvice calls can use it
+  const cgMap=briefing?.cgMap||{};
+  const stockH=MY_HOLDINGS.filter(h=>h.type==='stock'&&isValid(h.ticker));
+  const cryptoH=MY_HOLDINGS.filter(h=>h.type==='crypto');
+  const stockQ=await Promise.all(stockH.map(h=>fhGet(`/quote?symbol=${h.ticker}`)));
+  const stockP=await Promise.all(stockH.map(h=>getProfile(h.ticker)));
+  let allH=[];
+  for(let i=0;i<stockH.length;i++){
+    const h=stockH[i],q=stockQ[i];
+    const rawP=q?.c||0,prevClose=q?.pc||0;
+    const price=rawP>0?rawP:(prevClose>0?prevClose:0);
+    if(!price) continue;
+    const mktClosed=rawP===0&&prevClose>0;
+    const dayChgPct=!mktClosed&&prevClose?((rawP-prevClose)/prevClose*100):0;
+    const value=price*h.amount,cost=h.costUSD||0,pl=value-cost,plPct=cost?(pl/cost*100):0;
+    allH.push({...h,price,dayChgPct,pl,plPct,value,chg7d:0,companyName:stockP[i]?.name||h.ticker,costTotal:cost,currency:'USD',marketClosed:mktClosed});
+  }
+  for(const h of cryptoH){
+    const cg=cgMap[h.cgId];if(!cg?.current_price)continue;
+    const priceUSD=cg.current_price,priceCAD=priceUSD*USD_TO_CAD;
+    const valueCAD=priceCAD*h.amount,costCAD=h.costCAD||0;
+    const pl=valueCAD-costCAD,plPct=costCAD?(pl/costCAD*100):0;
+    const dayChgPct=cg.price_change_percentage_24h||0;
+    const chg7d=cg.price_change_percentage_7d_in_currency||0;
+    const cgMeta=CRYPTO_LIST.find(c=>c.id===h.cgId);
+    allH.push({...h,price:priceCAD,dayChgPct,pl,plPct,value:valueCAD,chg7d,companyName:cgMeta?.name||h.ticker,costTotal:costCAD,currency:'CAD'});
+  }
+  const html=allH.map(h=>{
+    const exitScore=calcExitScore(h);
+    const exitInfo=plainExitSignal(exitScore);
+    const momText=plainMomentum(h.dayChgPct,1);
+    const plText=plainPL(h.plPct);
+    return`<div class="holding-card" style="border-color:${exitScore>=70?'rgba(255,23,68,0.4)':exitScore>=40?'rgba(255,171,0,0.3)':'rgba(0,230,118,0.2)'}">
+      <div class="holding-top">
+        <div><div class="holding-name">${h.ticker}</div>
+          <div style="color:var(--accent);font-size:12px">${h.companyName}</div>
+          <div class="holding-amount">${h.amount} ${h.type==='crypto'?'coins':'shares'}</div></div>
+        <div class="holding-value">
+          <div class="holding-price">${fmtC(h.value)}</div>
+          <div class="holding-pl ${plClass(h.pl)}">${h.pl>=0?'+':''}${fmtC(Math.abs(h.pl))} (${fmtPct(h.plPct)})</div></div></div>
+      <div style="margin:8px 0">
+        <div style="font-size:13px;font-weight:700;color:${exitInfo.color};margin-bottom:2px">${exitInfo.label}</div>
+        <div style="font-size:12px;color:var(--muted)">${exitInfo.msg}</div></div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:4px">${momText}</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:8px">${plText}</div>
+      ${h.chg7d?`<div style="font-size:11px;color:var(--muted);margin-bottom:8px">This week: <span class="${plClass(h.chg7d)}">${fmtPct(h.chg7d)}</span> · Cost paid: ${fmtC(h.costTotal)} ${h.currency}</div>`:`<div style="font-size:11px;color:var(--muted);margin-bottom:8px">Cost paid: ${fmtC(h.costTotal)} ${h.currency}</div>`}
+      <div class="ai-advice loading" id="sell-advice-${h.ticker}">Getting exit analysis...</div>
+    </div>`;
+  }).join('');
+  setHTML('sell-container',html||'<div class="empty-state">No holdings to analyze.</div>');
+  setHTML('sell-status',`Updated ${now()}`);
+  allH.forEach((h,i)=>{
+    const advData={ticker:h.ticker,name:h.companyName,type:h.type,plPct:h.plPct,pl:h.pl,dayChgPct:h.dayChgPct,chg7d:h.chg7d||null,price:h.price,currentVal:h.value,costTotal:h.costTotal,currency:h.currency};
+    loadAdvice(`sell-advice-${h.ticker}`,advData,300+i*2000);
+  });
+}
+
+// ── CRYPTO TAB ────────────────────────────────────────
+async function loadCrypto(){
+  setHTML('crypto-status','<span class="loading-spinner"></span> Loading crypto prices...');
+  const cgData=await cgGetMarkets();
+  if(!cgData?.length){setHTML('your-crypto','<div class="empty-state">Could not load crypto data. Try refreshing.</div>');return;}
+  const cgMap={};cgData.forEach(c=>cgMap[c.id]=c);
+  const MY_HOLDINGS=getHoldings();
+  const myCrypto=MY_HOLDINGS.filter(h=>h.type==='crypto');
+  let myHtml='';
+  for(const h of myCrypto){
+    const cg=cgMap[h.cgId];if(!cg?.current_price)continue;
+    const priceUSD=cg.current_price,priceCAD=priceUSD*USD_TO_CAD;
+    const chg24=cg.price_change_percentage_24h||0,chg7d=cg.price_change_percentage_7d_in_currency||0;
+    const valueCAD=priceCAD*h.amount,costCAD=h.costCAD||0;
+    const pl=valueCAD-costCAD,plPct=costCAD?(pl/costCAD*100):0;
+    const cgMeta=CRYPTO_LIST.find(c=>c.id===h.cgId);
+    const momText=plainMomentum(chg24,1);
+    myHtml+=`<div class="crypto-row">
+      <div class="crypto-left"><div class="crypto-icon">${cgMeta?.icon||'?'}</div>
+      <div><div class="crypto-sym">${h.ticker} <span style="font-size:10px;color:var(--accent)">YOUR HOLDING</span></div>
+      <div class="crypto-name">${h.amount.toFixed(2)} coins</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:2px">${momText}</div></div></div>
+      <div class="crypto-right"><div class="crypto-price">${fmtC(priceCAD,4)} CAD</div>
+      <div class="crypto-chg ${plClass(chg24)}">${fmtPct(chg24)} today</div>
+      <div class="crypto-chg ${plClass(pl)}" style="font-size:11px">${pl>=0?'Up':'Down'} ${fmtC(Math.abs(pl))} (${fmtPct(plPct)})</div></div>
+    </div>`;
+  }
+  setHTML('your-crypto',myHtml||'<div style="font-size:13px;color:var(--muted)">No crypto holdings. Add via Portfolio tab.</div>');
+  let allHtml='';
+  CRYPTO_LIST.forEach(c=>{
+    const cg=cgMap[c.id];if(!cg?.current_price)return;
+    const chg24=cg.price_change_percentage_24h||0,chg1h=cg.price_change_percentage_1h_in_currency||0;
+    const price=cg.current_price;
+    const priceStr=price<0.000001?'$'+price.toFixed(8):price<0.001?'$'+price.toFixed(6):price<1?'$'+price.toFixed(4):fmtC(price);
+    const moodLabel=chg24>5?'🔥 Big move today':chg24>2?'📈 Rising':chg24<-5?'🔻 Dropping fast':chg24<-2?'⚠️ Falling':'➡️ Quiet today';
+    allHtml+=`<div class="crypto-row">
+      <div class="crypto-left"><div class="crypto-icon">${c.icon}</div>
+      <div><div class="crypto-sym">${c.sym}</div><div class="crypto-name">${c.name}</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:2px">${moodLabel}</div></div></div>
+      <div class="crypto-right"><div class="crypto-price">${priceStr}</div>
+      <div class="crypto-chg ${plClass(chg24)}">${fmtPct(chg24)} today</div>
+      <div class="crypto-chg ${plClass(chg1h)}" style="font-size:11px">${fmtPct(chg1h)} last hour</div></div>
+    </div>`;
+  });
+  setHTML('all-crypto',allHtml||'<div class="empty-state">Tap Refresh to load.</div>');
+  setHTML('crypto-status',`Updated ${now()}`);
+}
+
+// ── BETS TAB ──────────────────────────────────────────
+const ODDS_KEY = '134f31ecfabeda6ee466c150426ed1fe';
+const ODDS_BASE = 'https://api.the-odds-api.com/v4';
+
+const SPORTS_CONFIG = [
+  {key:'basketball_nba', label:'🏀 NBA', active:true},
+  {key:'icehockey_nhl', label:'🏒 NHL', active:true},
+  {key:'americanfootball_nfl', label:'🏈 NFL', active:true},
+  {key:'baseball_mlb', label:'⚾ MLB', active:true},
+  {key:'soccer_epl', label:'⚽ EPL', active:false},
+  {key:'soccer_mls', label:'⚽ MLS', active:false},
+  {key:'tennis_atp_french_open', label:'🎾 Tennis', active:false},
+  {key:'mma_mixed_martial_arts', label:'🥊 MMA', active:false},
+];
+let activeSport = 'basketball_nba'; // will auto-detect on load
+let oddsCache = {};
+let oddsCacheTime = {};
+
+async function findActiveSport(){
+  // Try each sport in priority order, return first one with upcoming games
+  const priority=['basketball_nba','icehockey_nhl','baseball_mlb','americanfootball_nfl',
+    'soccer_epl','soccer_mls','mma_mixed_martial_arts','tennis_atp_french_open'];
+  for(const sport of priority){
+    try{
+      const url=`${ODDS_BASE}/sports/${sport}/odds?apiKey=${ODDS_KEY}&regions=us&markets=h2h&oddsFormat=american`;
+      const r=await fetch(url);
+      if(!r.ok) continue;
+      const d=await r.json();
+      if(Array.isArray(d)&&d.length>0){
+        const hasUpcoming=d.some(g=>new Date(g.commence_time)>new Date());
+        if(hasUpcoming) return sport;
+      }
+    }catch(e){continue;}
+  }
+  return 'basketball_nba'; // fallback
+}
+
+async function getOdds(sport) {
+  if(oddsCache[sport] && Date.now()-(oddsCacheTime[sport]||0) < 300000) return oddsCache[sport];
+  try {
+    const url = `${ODDS_BASE}/sports/${sport}/odds?apiKey=${ODDS_KEY}&regions=us,us2&markets=h2h,spreads,totals&oddsFormat=american&bookmakers=bet365`;
+    const r = await fetch(url);
+    if(!r.ok) { console.warn('Odds API', r.status); return []; }
+    const d = await r.json();
+    oddsCache[sport] = Array.isArray(d) ? d : [];
+    oddsCacheTime[sport] = Date.now();
+    return oddsCache[sport];
+  } catch(e) { console.warn('Odds error', e); return []; }
+}
+
+function americanToProb(odds) {
+  if(!odds) return 50;
+  const o = parseInt(odds);
+  if(o > 0) return Math.round(100 / (o + 100) * 100);
+  return Math.round(Math.abs(o) / (Math.abs(o) + 100) * 100);
+}
+
+function americanToDecimal(odds) {
+  if(!odds) return 2.0;
+  const o = parseInt(odds);
+  if(o > 0) return ((o / 100) + 1).toFixed(2);
+  return ((100 / Math.abs(o)) + 1).toFixed(2);
+}
+
+function formatOdds(odds) {
+  if(!odds) return '—';
+  const o = parseInt(odds);
+  return o > 0 ? '+'+o : ''+o;
+}
+
+function formatGameTime(isoStr) {
+  const d = new Date(isoStr);
+  return d.toLocaleString('en-CA', {
+    timeZone: 'America/Vancouver',
+    weekday: 'short', month: 'short', day: 'numeric',
+    hour: 'numeric', minute: '2-digit', hour12: true
+  });
+}
+
+function getOddsForTeam(game, teamName, market) {
+  for(const bm of (game.bookmakers||[])) {
+    const mkt = bm.markets?.find(m=>m.key===market);
+    if(mkt) {
+      const outcome = mkt.outcomes?.find(o=>o.name===teamName);
+      if(outcome) return outcome.price;
+    }
+  }
+  // fallback to any bookmaker
+  for(const bm of (game.bookmakers||[])) {
+    const mkt = bm.markets?.find(m=>m.key===market);
+    if(mkt) {
+      const outcome = mkt.outcomes?.find(o=>o.name===teamName);
+      if(outcome) return outcome.price;
+    }
+  }
+  return null;
+}
+
+function getTotal(game) {
+  for(const bm of (game.bookmakers||[])) {
+    const mkt = bm.markets?.find(m=>m.key==='totals');
+    if(mkt?.outcomes?.length) {
+      const over = mkt.outcomes.find(o=>o.name==='Over');
+      if(over) return {total: over.point, overOdds: over.price, underOdds: mkt.outcomes.find(o=>o.name==='Under')?.price};
+    }
+  }
+  return null;
+}
+
+function getSpread(game, teamName) {
+  for(const bm of (game.bookmakers||[])) {
+    const mkt = bm.markets?.find(m=>m.key==='spreads');
+    if(mkt) {
+      const outcome = mkt.outcomes?.find(o=>o.name===teamName);
+      if(outcome) return {spread: outcome.point, odds: outcome.price};
+    }
+  }
+  return null;
+}
+
+async function loadBets(forceRefresh=false) {
+  if(forceRefresh) { oddsCache = {}; oddsCacheTime = {}; }
+  setHTML('bets-status', '<span class="loading-spinner"></span> Finding active sports...');
+  // Auto-detect the best sport with games if this is first load
+  if(!forceRefresh && activeSport==='basketball_nba'){
+    const detected = await findActiveSport();
+    if(detected !== activeSport){
+      activeSport = detected;
+      // Update filter button UI
+      document.querySelectorAll('.sport-filter-btn').forEach(b=>b.classList.remove('active'));
+      const btn=document.querySelector(`.sport-filter-btn[onclick*="${activeSport}"]`);
+      if(btn) btn.classList.add('active');
+    }
+  }
+  setHTML('bets-status', '<span class="loading-spinner"></span> Loading odds from Bet365...');
+  setHTML('bets-value-container', '<div class="empty-state"><span class="loading-spinner"></span> Getting today\'s games...</div>');
+  setHTML('bets-games-container', '<div class="empty-state"><span class="loading-spinner"></span></div>');
+
+  // Build sport filter buttons
+  const filterEl = document.getElementById('bets-sport-filter');
+  if(filterEl && !filterEl.innerHTML) {
+    filterEl.innerHTML = SPORTS_CONFIG.map(s =>
+      `<button class="sport-filter-btn ${s.key===activeSport?'active':''}" onclick="switchSport('${s.key}',this)">${s.label}</button>`
+    ).join('');
+  }
+
+  const games = await getOdds(activeSport);
+
+  if(!games.length) {
+    setHTML('bets-value-container', '<div class="empty-state">No upcoming games found for this sport right now. Try another sport or check back later.</div>');
+    setHTML('bets-games-container', '');
+    setHTML('bets-status', `Updated ${now()}`);
+    return;
+  }
+
+  // Sort by start time, take next 12
+  const upcoming = games
+    .filter(g => new Date(g.commence_time) > new Date())
+    .sort((a,b) => new Date(a.commence_time) - new Date(b.commence_time))
+    .slice(0, 12);
+
+  if(!upcoming.length) {
+    setHTML('bets-value-container', '<div class="empty-state">No upcoming games scheduled. Check back soon.</div>');
+    setHTML('bets-games-container', '');
+    setHTML('bets-status', `Updated ${now()}`);
+    return;
+  }
+
+  // Score each game for value
+  const scoredGames = upcoming.map(game => {
+    const h = game.home_team, a = game.away_team;
+    const homeOdds = getOddsForTeam(game, h, 'h2h');
+    const awayOdds = getOddsForTeam(game, a, 'h2h');
+    const homeProb = americanToProb(homeOdds);
+    const awayProb = americanToProb(awayOdds);
+    const total = getTotal(game);
+    const homeSpread = getSpread(game, h);
+    // Value detection: underdog with prob > 40% is interesting
+    const underdog = homeProb < awayProb ? {team:h, prob:homeProb, odds:homeOdds} : {team:a, prob:awayProb, odds:awayOdds};
+    const favourite = homeProb >= awayProb ? {team:h, prob:homeProb, odds:homeOdds} : {team:a, prob:awayProb, odds:awayOdds};
+    const isValue = underdog.prob >= 38 && underdog.prob <= 48; // close game priced as lopsided
+    return { game, h, a, homeOdds, awayOdds, homeProb, awayProb, total, homeSpread, underdog, favourite, isValue };
+  });
+
+  // Top value bets (close matchups)
+  const valueBets = scoredGames.filter(g => g.isValue).slice(0, 3);
+  // All games for picks
+  const allGames = scoredGames.slice(0, 6);
+
+  // Render value bets
+  if(valueBets.length) {
+    setHTML('bets-value-container', valueBets.map(g => renderValueCard(g)).join(''));
+  } else {
+    setHTML('bets-value-container', '<div class="empty-state">No strong value bets detected right now — odds are pricing these games fairly. Check the game picks below for the best straight bets.</div>');
+  }
+
+  // Render game picks
+  setHTML('bets-games-container', allGames.map(g => renderGameCard(g)).join(''));
+  setHTML('bets-status', `Updated ${now()} · ${upcoming.length} games loaded`);
+
+  // Fire AI analysis for top 3 games, staggered
+  allGames.slice(0, 3).forEach((g, i) => {
+    setTimeout(() => generateBetAnalysis(g, i), 500 + i * 5000);
+  });
+}
+
+function switchSport(sportKey, btn) {
+  activeSport = sportKey;
+  document.querySelectorAll('.sport-filter-btn').forEach(b => b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  oddsCache[sportKey] = null;
+  loadBets(false);
+}
+
+function renderValueCard(g) {
+  const {game, h, a, homeOdds, awayOdds, homeProb, awayProb, underdog, favourite, total} = g;
+  const gameTime = formatGameTime(game.commence_time);
+  const valuePct = Math.round(50 + (50-underdog.prob) * 0.3); // adjusted confidence
+  return `<div class="game-card value-bet">
+    <div style="font-size:10px;font-weight:700;color:var(--green);letter-spacing:.08em;margin-bottom:6px">💰 VALUE BET DETECTED</div>
+    <div class="game-header">
+      <div>
+        <div class="game-teams">${a} @ ${h}</div>
+        <div class="game-meta">${gameTime}</div>
+      </div>
+      <div class="game-time"><strong>${formatOdds(underdog.odds)}</strong>on ${underdog.team.split(' ').pop()}</div>
+    </div>
+    <div style="font-size:13px;margin-bottom:8px">
+      The bookmakers have <strong>${underdog.team}</strong> as the underdog at <strong>${formatOdds(underdog.odds)}</strong>, but the actual probability gap looks narrower than that.
+      This could be a value spot — the line may be overreacting.
+    </div>
+    <div class="odds-row">
+      <span class="odds-chip">${h}: ${formatOdds(homeOdds)}</span>
+      <span class="odds-chip">${a}: ${formatOdds(awayOdds)}</span>
+      ${total ? `<span class="odds-chip">O/U ${total.total}</span>` : ''}
+      <span class="odds-chip value">Value: ${underdog.team.split(' ').pop()} ML</span>
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin-top:4px">Implied probability: ${underdog.team.split(' ').pop()} ${underdog.prob}% · ${favourite.team.split(' ').pop()} ${favourite.prob}%</div>
+    <div class="confidence-bar"><div class="confidence-fill" style="width:${valuePct}%;background:var(--green)"></div></div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:10px">Adjusted confidence: ${valuePct}%</div>
+    <div class="ai-advice loading" id="bet-analysis-${game.id}" style="margin-bottom:8px">
+      <em style="color:var(--muted);font-size:12px">Tap a button for analysis:</em>
+    </div>
+    <a href="https://www.bet365.com" target="_blank" class="bet365-btn">Open Bet365 →</a>
+  </div>`;
+  setTimeout(()=>{
+    const valEl=document.getElementById('bet-analysis-'+game.id);
+    if(!valEl) return;
+    storeAdviceData('bet-analysis-'+game.id, {ticker:game.id,name:h+' vs '+a,type:'bet',
+      plPct:0,pl:0,dayChgPct:0,chg7d:null,price:0,currentVal:0,costTotal:0,currency:'USD',
+      gameData:{home:h,away:a,homeOdds:getOddsForTeam(game,h,'h2h'),awayOdds:getOddsForTeam(game,a,'h2h'),
+        total:getTotal(game),sport:activeSport}});
+    valEl.innerHTML=buildBetAIButtons('bet-analysis-'+game.id);
+  },50);
+}
+
+function renderGameCard(g) {
+  const {game, h, a, homeOdds, awayOdds, homeProb, awayProb, favourite, total, homeSpread} = g;
+  const gameTime = formatGameTime(game.commence_time);
+  const confColor = homeProb >= awayProb ?
+    (homeProb > 60 ? 'var(--green)' : homeProb > 50 ? 'var(--amber)' : 'var(--muted)') :
+    (awayProb > 60 ? 'var(--green)' : awayProb > 50 ? 'var(--amber)' : 'var(--muted)');
+
+  return `<div class="game-card" id="gamecard-${game.id}">
+    <div class="game-header">
+      <div>
+        <div class="game-teams">${a}<br><span style="color:var(--muted);font-size:12px">@ </span>${h}</div>
+        <div class="game-meta">${gameTime}</div>
+      </div>
+      <div class="game-time">
+        <strong style="color:${confColor}">${favourite.team.split(' ').pop()}</strong>
+        <span style="font-size:11px;color:var(--muted);display:block">favoured</span>
+        <span style="font-size:12px">${formatOdds(favourite.odds)}</span>
+      </div>
+    </div>
+    <div class="odds-row">
+      <span class="odds-chip pick">${h.split(' ').pop()} ${formatOdds(homeOdds)}</span>
+      <span class="odds-chip pick">${a.split(' ').pop()} ${formatOdds(awayOdds)}</span>
+      ${total ? `<span class="odds-chip">O/U ${total.total} (${formatOdds(total.overOdds)}/${formatOdds(total.underOdds)})</span>` : ''}
+      ${homeSpread ? `<span class="odds-chip">${h.split(' ').pop()} ${homeSpread.spread > 0 ? '+' : ''}${homeSpread.spread}</span>` : ''}
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:8px">
+      Win probability: ${h.split(' ').pop()} ${homeProb}% · ${a.split(' ').pop()} ${awayProb}%
+    </div>
+    <div class="ai-advice loading" id="bet-ai-${game.id}">
+      <em style="color:var(--muted);font-size:12px">Tap a button for pick + props:</em>
+    </div>
+    <div style="font-size:10px;color:var(--muted);margin-top:6px;line-height:1.4">⚠️ Always verify player props are available on Bet365 before placing. Lines and availability vary.</div>
+    <a href="https://www.bet365.com" target="_blank" class="bet365-btn" style="margin-top:8px">Open Bet365 →</a>
+  </div>`;
+  // Show AI buttons immediately
+  setTimeout(()=>{
+    const betEl=document.getElementById('bet-ai-'+game.id);
+    if(!betEl) return;
+    const betData={ticker:game.id,name:h+' vs '+a,type:'bet',plPct:0,pl:0,dayChgPct:0,chg7d:null,
+      price:0,currentVal:0,costTotal:0,currency:'USD',
+      gameData:{home:h,away:a,homeOdds:getOddsForTeam(game,h,'h2h'),awayOdds:getOddsForTeam(game,a,'h2h'),
+        total:getTotal(game),sport:activeSport}};
+    storeAdviceData('bet-ai-'+game.id, betData);
+    betEl.innerHTML=buildBetAIButtons('bet-ai-'+game.id);
+  },50);
+}
+
+async function generateBetAnalysis(g, idx) {
+  const {game, h, a, homeOdds, awayOdds, homeProb, awayProb, favourite, underdog, total, homeSpread} = g;
+
+  // Update both the value card and game card
+  const valueEl = document.getElementById(`bet-analysis-${game.id}`);
+  const gameEl = document.getElementById(`bet-ai-${game.id}`);
+
+  const sport = activeSport.includes('basketball') ? 'NBA basketball' :
+    activeSport.includes('hockey') ? 'NHL hockey' :
+    activeSport.includes('football') ? 'NFL football' :
+    activeSport.includes('baseball') ? 'MLB baseball' :
+    activeSport.includes('soccer') ? 'soccer' :
+    activeSport.includes('mma') ? 'MMA/UFC' :
+    activeSport.includes('tennis') ? 'tennis' : 'sports';
+
+  // Sport-specific prop types available on Bet365
+  const propTypes = activeSport.includes('basketball') ?
+    'Points Over/Under, Rebounds Over/Under, Assists Over/Under, 3-Pointers Made Over/Under' :
+    activeSport.includes('hockey') ?
+    'Goals Over/Under (0.5 or 1.5), Shots on Goal Over/Under, Points Over/Under' :
+    activeSport.includes('football') ?
+    'Passing Yards Over/Under, Rushing Yards Over/Under, Receiving Yards Over/Under, Touchdowns Over/Under' :
+    activeSport.includes('baseball') ?
+    'Strikeouts Over/Under, Hits Over/Under, Total Bases Over/Under, RBIs Over/Under' :
+    activeSport.includes('soccer') ?
+    'Goals Over/Under (0.5 or 1.5), Shots on Target Over/Under, Assists, Cards' :
+    activeSport.includes('mma') ?
+    'Fight goes the distance Yes/No, Method of Victory (KO/TKO, Submission, Decision), Round betting (fight ends in round X), Total rounds Over/Under' :
+    activeSport.includes('tennis') ?
+    'Total games Over/Under, Set betting, First set winner, Aces Over/Under' :
+    'Over/Under props relevant to this sport';
+
+  const prompt = `You are a sharp sports betting analyst helping a recreational bettor named Evan who uses Bet365.
+
+Game: ${a} @ ${h} (${sport})
+Moneyline: ${h} ${formatOdds(homeOdds)} (${homeProb}% implied) vs ${a} ${formatOdds(awayOdds)} (${awayProb}% implied)
+${total ? `Total: Over/Under ${total.total} (Over ${formatOdds(total.overOdds)}, Under ${formatOdds(total.underOdds)})` : ''}
+${homeSpread ? `Spread: ${h} ${homeSpread.spread > 0 ? '+' : ''}${homeSpread.spread} (${formatOdds(homeSpread.odds)})` : ''}
+
+Give Evan:
+1. BEST BET: One clear recommendation (moneyline, spread, or total) with reasoning. Start with the bet name.
+2. CONFIDENCE: X% confident (be realistic, max 75% for any bet)
+3. PLAYER/FIGHTER PROPS PARLAY: Suggest 3-4 prop bets for this ${sport} match available on Bet365. ONLY use these prop types for this sport: ${propTypes}. Give: Competitor name, prop type, line, confidence %. Only include legs 65%+ confident based on recent performance and this specific matchup.
+4. PARLAY VERDICT: 1 sentence. Tell Evan to verify each prop on Bet365 before placing.
+
+Format response as:
+BEST BET: [bet]
+WHY: [plain English reason, 2 sentences max]
+CONFIDENCE: [X%]
+---
+PARLAY PICK:
+• [Player] [prop] [line] — [confidence]%
+• [Player] [prop] [line] — [confidence]%
+• [Player] [prop] [line] — [confidence]%
+PARLAY ODDS: ~[estimated combined odds]
+VERDICT: [1 sentence on whether to place it]`;
+
+  // Ensure briefing loaded before calling AI
+  if(!marketBriefing) marketBriefing = await getMarketBriefing();
+  const aiResult = await callAI(prompt);
+  const aiText = aiResult?.text || null;
+  const aiSrc = aiResult?.source || null;
+
+  if(aiText) {
+    const formatted = formatBetAnalysis(aiText, h, a);
+    const srcLabel = aiSourceLabel(aiSrc);
+    const picksLabel = aiSrc==='groq'?'<div class="advice-source source-ai">🤖 AI Pick + Props — Groq</div>':aiSrc==='gemini'?'<div class="advice-source source-ai" style="color:#4285f4">🤖 AI Pick + Props — Google Gemini</div>':'<div class="advice-source source-data">📊 Data-Based Pick</div>';
+    if(valueEl) {
+      valueEl.className = 'ai-advice bullish';
+      valueEl.innerHTML = `${srcLabel}${formatted}`;
+    }
+    if(gameEl) {
+      gameEl.className = 'ai-advice bullish';
+      gameEl.innerHTML = `${picksLabel}${formatted}`;
+    }
+  } else {
+    // Rule-based fallback
+    const pick = favourite.team;
+    const pickOdds = formatOdds(favourite.odds);
+    const conf = favourite.prob > 60 ? 62 : favourite.prob > 52 ? 55 : 51;
+    const fallback = `BEST BET: ${pick} Moneyline (${pickOdds})
+WHY: ${pick} is the statistical favourite at ${favourite.prob}% implied probability. With no AI available, this is a straight odds-based pick.
+CONFIDENCE: ${conf}%
+---
+PARLAY PICK: AI unavailable — tap "Try AI" for prop suggestions
+VERDICT: Check back when AI is available for full prop analysis.`;
+    const formatted = formatBetAnalysis(fallback, h, a);
+    if(valueEl) {
+      valueEl.className = 'ai-advice hold';
+      valueEl.innerHTML = `<div class="advice-source source-data">📊 Data-Based Pick</div>${formatted}<br><button class="try-ai-btn" onclick="retryBetAI('${game.id}',${idx})">🤖 Try AI Analysis</button>`;
+    }
+    if(gameEl) {
+      gameEl.className = 'ai-advice hold';
+      gameEl.innerHTML = `<div class="advice-source source-data">📊 Data-Based Pick</div>${formatted}<br><button class="try-ai-btn" onclick="retryBetAI('${game.id}',${idx})">🤖 Try AI Analysis</button>`;
+    }
+  }
+}
+
+async function retryBetAI(gameId, idx) {
+  const el = document.getElementById(`bet-ai-${gameId}`);
+  const el2 = document.getElementById(`bet-analysis-${gameId}`);
+  if(el) el.innerHTML = '<span class="loading-spinner"></span> Getting AI analysis...';
+  if(!marketBriefing) marketBriefing = await getMarketBriefing();
+  const games = await getOdds(activeSport);
+  const game = games.find(g => g.id === gameId);
+  if(!game) return;
+  const h = game.home_team, a = game.away_team;
+  const homeOdds = getOddsForTeam(game, h, 'h2h');
+  const awayOdds = getOddsForTeam(game, a, 'h2h');
+  const homeProb = americanToProb(homeOdds);
+  const awayProb = americanToProb(awayOdds);
+  const total = getTotal(game);
+  const homeSpread = getSpread(game, h);
+  const favourite = homeProb >= awayProb ? {team:h, prob:homeProb, odds:homeOdds} : {team:a, prob:awayProb, odds:awayOdds};
+  const underdog = homeProb < awayProb ? {team:h, prob:homeProb, odds:homeOdds} : {team:a, prob:awayProb, odds:awayOdds};
+  const isValue = underdog.prob >= 38 && underdog.prob <= 48;
+  await generateBetAnalysis({game, h, a, homeOdds, awayOdds, homeProb, awayProb, favourite, underdog, total, homeSpread, isValue}, idx);
+}
+
+function formatBetAnalysis(text, homeTeam, awayTeam) {
+  if(!text) return '';
+  return text
+    .replace(/^BEST BET:/gm, '<strong style="color:var(--accent)">🎯 Best Bet:</strong>')
+    .replace(/^WHY:/gm, '<strong>Why:</strong>')
+    .replace(/^CONFIDENCE:/gm, '<strong>Confidence:</strong>')
+    .replace(/^---$/gm, '<div style="height:1px;background:var(--border);margin:8px 0"></div><div class="parlay-title">⭐ Suggested Parlay</div>')
+    .replace(/^PARLAY PICK:/gm, '')
+    .replace(/^PARLAY ODDS:/gm, '<strong>Combined odds:</strong>')
+    .replace(/^VERDICT:/gm, '<strong>Verdict:</strong>')
+    .replace(/Verify|verify/, '<span style="color:var(--amber)">⚠️ Verify</span>')
+    .replace(/^• (.+)$/gm, '<div class="parlay-leg">• $1</div>')
+    .replace(/\n/g, '<br>');
+}
+
+// Reset holdings to defaults (useful when localStorage has corrupt data)
+function resetHoldings(){
+  localStorage.removeItem('marketadvisor_holdings');
+  loadPortfolio();
+}
+
+// Global store for advice data — avoids broken inline JSON in onclick handlers
+const _adviceStore = {};
+function storeAdviceData(id, data){
+  _adviceStore[id] = data;
+}
+function getAdviceData(id){
+  return _adviceStore[id] || null;
+}
+
+// ── INIT ──────────────────────────────────────────────
+updateMarketBar();
+setInterval(updateMarketBar, 60000);
+// Pre-load market briefing immediately so AI calls are always ready
+getMarketBriefing().then(b => { if(b) marketBriefing = b; });
+loadPortfolio();
+loadBuyNow();
+</script>
+</body>
+</html>
